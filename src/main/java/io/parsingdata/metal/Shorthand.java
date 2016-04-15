@@ -18,11 +18,13 @@ package io.parsingdata.metal;
 
 import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.expression.Expression;
+import io.parsingdata.metal.expression.False;
 import io.parsingdata.metal.expression.True;
 import io.parsingdata.metal.expression.comparison.ComparisonExpression;
 import io.parsingdata.metal.expression.comparison.Eq;
 import io.parsingdata.metal.expression.comparison.EqNum;
 import io.parsingdata.metal.expression.comparison.EqStr;
+import io.parsingdata.metal.expression.comparison.GtEqNum;
 import io.parsingdata.metal.expression.comparison.GtNum;
 import io.parsingdata.metal.expression.comparison.LtNum;
 import io.parsingdata.metal.expression.logical.And;
@@ -55,6 +57,7 @@ import io.parsingdata.metal.expression.value.reference.Ref;
 import io.parsingdata.metal.expression.value.reference.Self;
 import io.parsingdata.metal.token.Cho;
 import io.parsingdata.metal.token.Def;
+import io.parsingdata.metal.token.Enc;
 import io.parsingdata.metal.token.Nod;
 import io.parsingdata.metal.token.Opt;
 import io.parsingdata.metal.token.Pre;
@@ -100,6 +103,7 @@ public class Shorthand {
     public static Token opt(final Token t) { return opt(t, null); }
     public static Token nod(final ValueExpression s, final Encoding e) { return new Nod(s, e); }
     public static Token nod(final ValueExpression s) { return new Nod(s, null); }
+    public static Token enc(final Token t, final Encoding e) { return new Enc(t, e); }
 
     public static BinaryValueExpression add(final ValueExpression l, final ValueExpression r) { return new Add(l, r); }
     public static BinaryValueExpression div(final ValueExpression l, final ValueExpression r) { return new Div(l, r); }
@@ -118,7 +122,10 @@ public class Shorthand {
     public static ValueExpression con(final String s, final Encoding encoding) { return con(ConstantFactory.createFromString(s, encoding)); }
     public static ValueExpression con(final Value v) { return new Const(v); }
     public static ValueExpression con(final Encoding enc, final int... values) { return new Const(new Value(toByteArray(values), enc)); }
+    public static ValueExpression con(final Encoding enc, final byte... values) { return new Const(new Value(values, enc)); }
     public static ValueExpression con(final int... values) { return con(new Encoding(), values); }
+    public static ValueExpression con(final byte... values) { return con(new Encoding(), values); }
+
     public static final ValueExpression self = new Self();
     public static ValueExpression ref(final String s) { return new Ref(s); }
     public static ValueExpression first(final String s) { return new First(s); }
@@ -136,6 +143,7 @@ public class Shorthand {
     public static BinaryLogicalExpression or(final Expression l, final Expression r) { return new Or(l, r); }
     public static UnaryLogicalExpression not(final Expression e) { return new Not(e); }
     public static Expression expTrue() { return new True(); }
+    public static Expression expFalse() { return new False(); }
 
     public static ComparisonExpression eq(final ValueExpression p) { return new Eq(null, p); }
     public static ComparisonExpression eq(final ValueExpression c, final ValueExpression p) { return new Eq(c, p); }
@@ -147,6 +155,9 @@ public class Shorthand {
     public static ComparisonExpression gtNum(final ValueExpression c, final ValueExpression p) { return new GtNum(c, p); }
     public static ComparisonExpression ltNum(final ValueExpression p) { return new LtNum(null, p); }
     public static ComparisonExpression ltNum(final ValueExpression c, final ValueExpression p) { return new LtNum(c, p); }
+    public static ComparisonExpression gtEqNum(final ValueExpression p) { return new GtEqNum(null, p); }
+    public static ComparisonExpression gtEqNum(final ValueExpression c, final ValueExpression p) { return new GtEqNum(c, p); }
+
 
     public static byte[] toByteArray(final int... bytes) {
         final byte[] out = new byte[bytes.length];
