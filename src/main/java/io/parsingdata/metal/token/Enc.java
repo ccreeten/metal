@@ -4,7 +4,6 @@
  */
 package io.parsingdata.metal.token;
 
-import static io.parsingdata.metal.Shorthand.con;
 import static io.parsingdata.metal.Util.checkNotNull;
 
 import java.io.IOException;
@@ -25,10 +24,6 @@ public class Enc extends Token {
     @Override
     protected ParseResult parseImpl(final String scope, final Environment env, final Encoding enc) throws IOException {
         return _op.parse(scope, env, enc);
-    }
-
-    public static void main(final String[] args) {
-        con(new byte[0]);
     }
 
 }
