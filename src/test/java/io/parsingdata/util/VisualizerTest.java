@@ -28,7 +28,9 @@ import org.junit.Test;
 
 import io.parsingdata.metal.data.Environment;
 import io.parsingdata.metal.data.ParseGraph;
+import io.parsingdata.metal.data.ParseValue;
 import io.parsingdata.metal.token.Token;
+import io.parsingdata.util.Visualizer.ValueStringifier;
 
 /**
  *
@@ -53,10 +55,33 @@ public class VisualizerTest {
     private static final Token GOD = cho(def("nope", 1, eqNum(con(666))),
                                          STAGE_2);
 
+    private static final Token REPS = rep(def("byte", 1));
+
     @Test
-    public void test() {
+    public void testReps() {
+        final ParseGraph graph = parseResultGraph(stream(0xCA, 0xFE, 0xBA, 0xBE), REPS);
+        final Visualizer visualizer = new Visualizer(new ValueStringifier() {
+
+            @Override
+            public String toString(final ParseValue value) {
+                return value.asNumeric().toString(16).toUpperCase();
+            }
+        });
+        visualizer.printGraphViz(graph);
+    }
+
+    @Test
+    public void testAllTokens() {
         final ParseGraph graph = parseResultGraph(stream(0, 1, 2, 4, 5, 6), GOD);
-        Visualizer.printGraphViz(graph.reverse());
+        final Visualizer visualizer = new Visualizer();
+        visualizer.printGraphViz(graph);
+    }
+
+    @Test
+    public void testAllTokensReverse() {
+        final ParseGraph graph = parseResultGraph(stream(0, 1, 2, 4, 5, 6), GOD);
+        final Visualizer visualizer = new Visualizer();
+        visualizer.printGraphViz(graph.reverse());
     }
 
     private ParseGraph parseResultGraph(final Environment env, final Token def) {

@@ -25,11 +25,13 @@ import io.parsingdata.metal.token.While;
 public final class Visualizer {
 
     private static final String ROOT = "Root";
-    private static final String NULL = "Null";
+    private static final String EMPTY = "Empty";
     private static final String DEF = "Def";
 
     private static final Class<?>[] TOKENS = {Cho.class, Def.class, Nod.class, Opt.class, Pre.class, Rep.class, RepN.class, Seq.class, Str.class, Sub.class, While.class};
     private static final Map<String, String> COLORS = new HashMap<>();
+
+    private final ValueStringifier stringifier;
 
     static {
         double hue = 0.0;
@@ -39,11 +41,11 @@ public final class Visualizer {
             hue += step;
         }
         COLORS.put(ROOT, "0.9 0.3 0.9");
-        COLORS.put(NULL, "0.95 0.3 0.9");
+        COLORS.put(EMPTY, "0.95 0.3 0.9");
     }
 
-    public static void printGraphViz(final ParseGraph graph) {
-        printGraphViz(graph, new ValueNodeStringifier() {
+    public Visualizer() {
+        this(new ValueStringifier() {
 
             @Override
             public String toString(final ParseValue value) {
@@ -52,13 +54,17 @@ public final class Visualizer {
         });
     }
 
-    public static void printGraphViz(final ParseGraph graph, final ValueNodeStringifier stringifier) {
+    public Visualizer(final ValueStringifier stringifier) {
+        this.stringifier = stringifier;
+    }
+
+    public void printGraphViz(final ParseGraph graph) {
         System.out.printf("digraph {%nnode [style = filled]%n%s[label = %s, color = \"%s\"]%n", ROOT, ROOT, getHSVString(ROOT));
-        toViz(graph, "", ROOT, stringifier);
+        toViz(graph, "", ROOT);
         System.out.printf("}%n");
     }
 
-    private static void toViz(final ParseGraph graph, final String path, final String parentNode, final ValueNodeStringifier stringifier) {
+    private void toViz(final ParseGraph graph, final String path, final String parentNode) {
         final ParseItem head = graph.head;
         if (head == null) {
             return;
@@ -69,44 +75,46 @@ public final class Visualizer {
 
         if (head.isValue()) {
             final String valueName = DEF + headPath;
-            printNodeDefinition(stringifier.toString(head.asValue()), valueName, getHSVString(DEF));
+            printNodeDefinition(valueName, stringifier.toString(head.asValue()), getHSVString(DEF));
             printEdgeDefinition(parentNode, valueName, "head");
         }
         else if (head.isGraph()) {
-            final String def = head.getDefinition().getClass().getSimpleName();
-            final String headName = def + headPath;
-            printNodeDefinition(def, headName);
-            printEdgeDefinition(parentNode, headName, "head");
-
-            toViz(head.asGraph(), headPath, headName, stringifier);
+            toViz(head.asGraph(), parentNode, headPath, "head");
         }
 
-        final String def = graph.tail.size == 0 ? NULL : graph.tail.getDefinition().getClass().getSimpleName();
-        final String tailName = def + tailPath;
-        printNodeDefinition(def, tailName);
-        printEdgeDefinition(parentNode, tailName, "tail");
-
-        toViz(graph.tail, tailPath, tailName, stringifier);
+        toViz(graph.tail, parentNode, tailPath, "tail");
     }
 
-    private static void printEdgeDefinition(final String parent, final String child, final String edgeLabel) {
+    private void toViz(final ParseGraph graph, final String parentNode, final String graphPath, final String edgeLabel) {
+        final String definition = graphToDef(graph);
+        final String identifier = definition + graphPath;
+        printNodeDefinition(identifier, definition);
+        printEdgeDefinition(parentNode, identifier, edgeLabel);
+
+        toViz(graph, graphPath, identifier);
+    }
+
+    private String graphToDef(final ParseGraph graph) {
+        return graph == ParseGraph.EMPTY ? EMPTY : graph.getDefinition().getClass().getSimpleName();
+    }
+
+    private void printEdgeDefinition(final String parent, final String child, final String edgeLabel) {
         System.out.printf("%s -> %s [label = %s]", parent, child, edgeLabel);
     }
 
-    private static void printNodeDefinition(final String definition, final String identifier) {
-        printNodeDefinition(definition, identifier, getHSVString(definition));
+    private void printNodeDefinition(final String identifier, final String definition) {
+        printNodeDefinition(identifier, definition, getHSVString(definition));
     }
 
-    private static void printNodeDefinition(final String definition, final String identifier, final String color) {
-        System.out.printf("%s[label = %s, color = \"%s\"]%n", identifier, definition, color);
+    private void printNodeDefinition(final String identifier, final String nodeLabel, final String color) {
+        System.out.printf("%s[label = %s, color = \"%s\"]%n", identifier, nodeLabel, color);
     }
 
-    private static String getHSVString(final String def) {
-        // TODO when in VisualizerTest, when trying reverse def is an empty String at some point
+    private String getHSVString(final String def) {
         return COLORS.getOrDefault(def, "0.0 0.0 0.0");
     }
 
-    public static interface ValueNodeStringifier {
+    public static interface ValueStringifier {
 
         public String toString(ParseValue value);
     }
