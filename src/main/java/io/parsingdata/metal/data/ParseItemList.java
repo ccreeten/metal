@@ -18,6 +18,11 @@ package io.parsingdata.metal.data;
 
 import static io.parsingdata.metal.Util.checkNotNull;
 
+import java.util.Spliterators.AbstractSpliterator;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 public class ParseItemList {
 
     public final ParseItem head;
@@ -75,6 +80,31 @@ public class ParseItemList {
     private ParseItemList reverse(final ParseItemList oldList, final ParseItemList newList) {
         if (oldList.isEmpty()) { return newList; }
         return reverse(oldList.tail, newList.add(oldList.head));
+    }
+
+    public Stream<ParseItem> stream() {
+        return StreamSupport.stream(new Spliter(this), false);
+    }
+
+    private static class Spliter extends AbstractSpliterator<ParseItem> {
+
+        private ParseItemList _list;
+
+        private Spliter(final ParseItemList list) {
+            super(list.size, IMMUTABLE | SIZED);
+            _list = list;
+        }
+
+        @Override
+        public boolean tryAdvance(final Consumer<? super ParseItem> consumer) {
+            if (_list.head == null) {
+                return false;
+            }
+            consumer.accept(_list.head);
+            _list = _list.tail;
+            return true;
+        }
+
     }
 
     @Override
