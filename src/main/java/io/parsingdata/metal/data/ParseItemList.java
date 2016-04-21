@@ -91,7 +91,7 @@ public class ParseItemList {
         private ParseItemList _list;
 
         private Spliter(final ParseItemList list) {
-            super(list.size, IMMUTABLE | SIZED);
+            super(list.size, IMMUTABLE | NONNULL | SIZED);
             _list = list;
         }
 
@@ -103,6 +103,11 @@ public class ParseItemList {
             consumer.accept(_list.head);
             _list = _list.tail;
             return true;
+        }
+
+        @Override
+        public long estimateSize() {
+            return _list.size;
         }
 
     }
