@@ -26,13 +26,16 @@ import io.parsingdata.metal.expression.comparison.EqNum;
 import io.parsingdata.metal.expression.comparison.EqStr;
 import io.parsingdata.metal.expression.comparison.GtEqNum;
 import io.parsingdata.metal.expression.comparison.GtNum;
+import io.parsingdata.metal.expression.comparison.LtEqNum;
 import io.parsingdata.metal.expression.comparison.LtNum;
 import io.parsingdata.metal.expression.logical.And;
 import io.parsingdata.metal.expression.logical.BinaryLogicalExpression;
+import io.parsingdata.metal.expression.logical.Implication;
 import io.parsingdata.metal.expression.logical.Not;
 import io.parsingdata.metal.expression.logical.Or;
 import io.parsingdata.metal.expression.logical.UnaryLogicalExpression;
 import io.parsingdata.metal.expression.value.BinaryValueExpression;
+import io.parsingdata.metal.expression.value.CachedExpression;
 import io.parsingdata.metal.expression.value.Cat;
 import io.parsingdata.metal.expression.value.Const;
 import io.parsingdata.metal.expression.value.ConstantFactory;
@@ -125,6 +128,7 @@ public class Shorthand {
     public static ValueExpression con(final Encoding enc, final byte... values) { return new Const(new Value(values, enc)); }
     public static ValueExpression con(final int... values) { return con(new Encoding(), values); }
     public static ValueExpression con(final byte... values) { return con(new Encoding(), values); }
+    public static ValueExpression cache(final ValueExpression expression) { return new CachedExpression(expression); }
 
     public static final ValueExpression self = new Self();
     public static ValueExpression ref(final String s) { return new Ref(s); }
@@ -142,6 +146,7 @@ public class Shorthand {
     public static BinaryLogicalExpression and(final Expression l, final Expression r) { return new And(l, r); }
     public static BinaryLogicalExpression or(final Expression l, final Expression r) { return new Or(l, r); }
     public static UnaryLogicalExpression not(final Expression e) { return new Not(e); }
+    public static BinaryLogicalExpression imp(final Expression l, final Expression r) { return new Implication(l, r); }
     public static Expression expTrue() { return new True(); }
     public static Expression expFalse() { return new False(); }
 
@@ -155,6 +160,8 @@ public class Shorthand {
     public static ComparisonExpression gtNum(final ValueExpression c, final ValueExpression p) { return new GtNum(c, p); }
     public static ComparisonExpression ltNum(final ValueExpression p) { return new LtNum(null, p); }
     public static ComparisonExpression ltNum(final ValueExpression c, final ValueExpression p) { return new LtNum(c, p); }
+    public static ComparisonExpression ltEqNum(final ValueExpression p) { return new LtEqNum(null, p); }
+    public static ComparisonExpression ltEqNum(final ValueExpression c, final ValueExpression p) { return new LtEqNum(c, p); }
     public static ComparisonExpression gtEqNum(final ValueExpression p) { return new GtEqNum(null, p); }
     public static ComparisonExpression gtEqNum(final ValueExpression c, final ValueExpression p) { return new GtEqNum(c, p); }
 
