@@ -25,6 +25,7 @@ import io.parsingdata.metal.token.While;
 
 public final class Visualizer {
 
+    private static final int MAX_STRING_SIZE = 24;
     private static final String ROOT = "Root";
     private static final String EMPTY = "Empty";
     private static final String DEF = "Def";
@@ -50,8 +51,16 @@ public final class Visualizer {
 
             @Override
             public String toString(final ParseValue value) {
+                // Use value.getBytes() as String, max length 20
+                byte[] bytes = value.getValue();
+                if (bytes.length > MAX_STRING_SIZE) {
+                    bytes = new byte[MAX_STRING_SIZE];
+                    System.arraycopy(value.getValue(), 0, bytes, 0, bytes.length);
+                }
+
+                // Check if all bytes are a character in UTF-8
                 boolean isString = true;
-                for (final byte character : value.getValue()) {
+                for (final byte character : bytes) {
                     final int charValue = character & 0xff;
                     if (charValue < ' ' || charValue > '~') {
                         isString = false;
@@ -59,8 +68,19 @@ public final class Visualizer {
                     }
                 }
 
-                final Object val = isString ? new String(value.getValue(), StandardCharsets.UTF_8) : Long.toHexString(value.asNumeric().longValue()).toUpperCase();
-                return String.format("\"[0x%s] %s: %s\"", Long.toHexString(value.offset).toUpperCase(), value.getFullName(), val);
+                final StringBuilder builder = new StringBuilder();
+                if (!isString || (isString && (value.getValue().length == 4 || value.getValue().length == 8))) {
+                    builder.append(Long.toHexString(value.asNumeric().longValue()).toUpperCase());
+                }
+                if (isString) {
+                    if (builder.length() > 0) {
+                        builder.append(' ');
+                    }
+                    builder.append(new String(bytes, StandardCharsets.UTF_8));
+                    builder.append(value.getValue().length > MAX_STRING_SIZE ? "\u2026" : "");
+                }
+
+                return String.format("\"[0x%s] %s: %s\"", Long.toHexString(value.offset).toUpperCase(), value.getFullName(), builder);
             }
         });
     }
