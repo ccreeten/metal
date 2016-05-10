@@ -4,6 +4,13 @@
  */
 package io.parsingdata.util;
 
+import static java.nio.charset.CodingErrorAction.REPORT;
+
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +32,6 @@ import io.parsingdata.metal.token.While;
 
 public final class Visualizer {
 
-    private static final int MAX_STRING_SIZE = 24;
     private static final String ROOT = "Root";
     private static final String EMPTY = "Empty";
     private static final String DEF = "Def";
@@ -51,43 +57,52 @@ public final class Visualizer {
 
             @Override
             public String toString(final ParseValue value) {
-                // Use value.getBytes() as String, max length MAX_STRING_SIZE
-                byte[] bytes = value.getValue();
-                if (bytes.length > MAX_STRING_SIZE) {
-                    bytes = new byte[MAX_STRING_SIZE];
-                    System.arraycopy(value.getValue(), 0, bytes, 0, bytes.length);
-                }
-
-                // Check if all bytes are a character in UTF-8
-                boolean isString = true;
-                for (final byte character : bytes) {
-                    final int charValue = character & 0xff;
-                    if (charValue < ' ' || charValue > '~') {
-                        isString = false;
-                        break;
-                    }
-                }
+                final Charset charset = value.getEncoding() == null ? StandardCharsets.UTF_8 : value.getEncoding().getCharset();
 
                 final StringBuilder builder = new StringBuilder();
-                if (value.getValue().length == 4 || value.getValue().length == 8) {
+                final boolean isNumeric =
+                    value.getValue().length == 1 || // byte
+                    value.getValue().length == 4 || // int
+                    value.getValue().length == 8; // long
+
+                if (isNumeric) {
                     // Possible Integer or Long
                     builder.append("0x");
                     builder.append(Long.toHexString(value.asNumeric().longValue()).toUpperCase());
                     builder.append(' ');
                     builder.append(value.asNumeric().longValue());
                     builder.append('L');
-                    builder.append(isString ? " " : "");
                 }
-                if (isString) {
-                    // Possible String
-                    builder.append(new String(bytes, StandardCharsets.UTF_8));
-                    builder.append(value.getValue().length > MAX_STRING_SIZE ? "\u2026" : "");
+
+                try {
+                    final CharsetDecoder decoder = charset.newDecoder().onUnmappableCharacter(REPORT).onMalformedInput(REPORT);
+                    final CharBuffer buffer = decoder.decode(ByteBuffer.wrap(value.getValue()));
+
+                    if (validCharacterRange(buffer)) {
+                        // Valid String
+                        builder.append(isNumeric ? " " : "");
+                        builder.append(buffer.toString());
+                    }
+                }
+                catch (final CharacterCodingException e) {
+                    // Not a valid string for this encoding
                 }
 
                 return String.format("\"[0x%s] %s: %s\"", Long.toHexString(value.offset).toUpperCase(), value.getFullName(), builder);
             }
+
+            private boolean validCharacterRange(final CharBuffer buffer) {
+                for (int i = 0; i < buffer.length(); i++) {
+                    if (buffer.get() < ' ') {
+                        return false;
+                    }
+                }
+                buffer.rewind();
+                return true;
+            }
         });
     }
+
 
     public Visualizer(final ValueStringifier stringifier) {
         this.stringifier = stringifier;
