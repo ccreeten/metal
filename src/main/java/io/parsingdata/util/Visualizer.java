@@ -69,13 +69,17 @@ public final class Visualizer {
                 }
 
                 final StringBuilder builder = new StringBuilder();
-                if (!isString || (isString && (value.getValue().length == 4 || value.getValue().length == 8))) {
+                if (value.getValue().length == 4 || value.getValue().length == 8) {
+                    // Possible Integer or Long
+                    builder.append("0x");
                     builder.append(Long.toHexString(value.asNumeric().longValue()).toUpperCase());
+                    builder.append(' ');
+                    builder.append(value.asNumeric().longValue());
+                    builder.append('L');
+                    builder.append(isString ? " " : "");
                 }
                 if (isString) {
-                    if (builder.length() > 0) {
-                        builder.append(' ');
-                    }
+                    // Possible String
                     builder.append(new String(bytes, StandardCharsets.UTF_8));
                     builder.append(value.getValue().length > MAX_STRING_SIZE ? "\u2026" : "");
                 }
