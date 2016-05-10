@@ -60,6 +60,10 @@ public final class Visualizer {
                 final Charset charset = value.getEncoding() == null ? StandardCharsets.UTF_8 : value.getEncoding().getCharset();
 
                 final StringBuilder builder = new StringBuilder();
+                builder.append('"');
+                builder.append("[0x").append(Long.toHexString(value.offset).toUpperCase()).append("] ");
+                builder.append(value.getFullName()).append(' ');
+
                 final boolean isNumeric =
                     value.getValue().length == 1 || // byte
                     value.getValue().length == 4 || // int
@@ -81,19 +85,20 @@ public final class Visualizer {
                     if (validCharacterRange(buffer)) {
                         // Valid String
                         builder.append(isNumeric ? " " : "");
-                        builder.append(buffer.toString());
+                        builder.append(buffer.toString().trim()); // Trim 0 bytes
                     }
                 }
                 catch (final CharacterCodingException e) {
                     // Not a valid string for this encoding
                 }
 
-                return String.format("\"[0x%s] %s: %s\"", Long.toHexString(value.offset).toUpperCase(), value.getFullName(), builder);
+                return builder.append('"').toString();
             }
 
             private boolean validCharacterRange(final CharBuffer buffer) {
                 for (int i = 0; i < buffer.length(); i++) {
-                    if (buffer.get() < ' ') {
+                    final int character = buffer.get();
+                    if (character < ' ' || character > '~') {
                         return false;
                     }
                 }
