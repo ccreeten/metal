@@ -4,6 +4,14 @@
  */
 package io.parsingdata.util;
 
+import static java.nio.charset.CodingErrorAction.REPORT;
+
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +57,48 @@ public final class Visualizer {
 
             @Override
             public String toString(final ParseValue value) {
-                return String.format("\"[0x%s]: %s\"", Long.toHexString(value.offset).toUpperCase(), value.asNumeric());
+                final Charset charset = value.getEncoding() == null ? StandardCharsets.UTF_8 : value.getEncoding().getCharset();
+
+                final StringBuilder builder = new StringBuilder();
+                final boolean isNumeric =
+                    value.getValue().length == 1 || // byte
+                    value.getValue().length == 4 || // int
+                    value.getValue().length == 8; // long
+
+                if (isNumeric) {
+                    // Possible Integer or Long
+                    builder.append("0x");
+                    builder.append(Long.toHexString(value.asNumeric().longValue()).toUpperCase());
+                    builder.append(' ');
+                    builder.append(value.asNumeric().longValue());
+                    builder.append('L');
+                }
+
+                try {
+                    final CharsetDecoder decoder = charset.newDecoder().onUnmappableCharacter(REPORT).onMalformedInput(REPORT);
+                    final CharBuffer buffer = decoder.decode(ByteBuffer.wrap(value.getValue()));
+
+                    if (validCharacterRange(buffer)) {
+                        // Valid String
+                        builder.append(isNumeric ? " " : "");
+                        builder.append(buffer.toString());
+                    }
+                }
+                catch (final CharacterCodingException e) {
+                    // Not a valid string for this encoding
+                }
+
+                return String.format("\"[0x%s] %s: %s\"", Long.toHexString(value.offset).toUpperCase(), value.getFullName(), builder);
+            }
+
+            private boolean validCharacterRange(final CharBuffer buffer) {
+                for (int i = 0; i < buffer.length(); i++) {
+                    if (buffer.get() < ' ') {
+                        return false;
+                    }
+                }
+                buffer.rewind();
+                return true;
             }
         });
     }
