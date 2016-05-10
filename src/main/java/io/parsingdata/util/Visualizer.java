@@ -4,6 +4,7 @@
  */
 package io.parsingdata.util;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +50,17 @@ public final class Visualizer {
 
             @Override
             public String toString(final ParseValue value) {
-                return String.format("\"[0x%s]: %s\"", Long.toHexString(value.offset).toUpperCase(), value.asNumeric());
+                boolean isString = true;
+                for (final byte character : value.getValue()) {
+                    final int charValue = character & 0xff;
+                    if (charValue < ' ' || charValue > '~') {
+                        isString = false;
+                        break;
+                    }
+                }
+
+                final Object val = isString ? new String(value.getValue(), StandardCharsets.UTF_8) : Long.toHexString(value.asNumeric().longValue()).toUpperCase();
+                return String.format("\"%s: %s\"", value.getFullName(), val);
             }
         });
     }
