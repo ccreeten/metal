@@ -103,7 +103,6 @@ public final class Visualizer {
         });
     }
 
-
     public Visualizer(final ValueStringifier stringifier) {
         this.stringifier = stringifier;
     }
