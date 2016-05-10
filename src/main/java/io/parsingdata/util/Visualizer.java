@@ -51,7 +51,7 @@ public final class Visualizer {
 
             @Override
             public String toString(final ParseValue value) {
-                // Use value.getBytes() as String, max length 20
+                // Use value.getBytes() as String, max length MAX_STRING_SIZE
                 byte[] bytes = value.getValue();
                 if (bytes.length > MAX_STRING_SIZE) {
                     bytes = new byte[MAX_STRING_SIZE];
