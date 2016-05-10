@@ -60,7 +60,7 @@ public final class Visualizer {
                 }
 
                 final Object val = isString ? new String(value.getValue(), StandardCharsets.UTF_8) : Long.toHexString(value.asNumeric().longValue()).toUpperCase();
-                return String.format("\"%s: %s\"", value.getFullName(), val);
+                return String.format("\"[0x%s] %s: %s\"", Long.toHexString(value.offset).toUpperCase(), value.getFullName(), val);
             }
         });
     }
