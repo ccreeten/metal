@@ -19,12 +19,14 @@ import static io.parsingdata.metal.util.EncodingFactory.enc;
 import static io.parsingdata.metal.util.EnvironmentFactory.stream;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.Test;
 
 import io.parsingdata.metal.data.Environment;
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.ParseValue;
+import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.token.Token;
 
 public class VisualizerTest {
@@ -76,15 +78,26 @@ public class VisualizerTest {
     }
 
     @Test
-    public void test() {
+    public void testUTF8() {
         final ParseGraph graph = parseResultGraph(stream(0x77, 0x77, 0x77), def("www", 3));
         final Visualizer visualizer = new Visualizer(Stringifiers.ORACLE);
         visualizer.printGraphViz(graph.reverse());
     }
 
+    @Test
+    public void testUTF16() {
+        final ParseGraph graph = parseResultGraph(stream(0x00, 0x77, 0x00, 0x77, 0x00, 0x77), def("www", 6), new Encoding(StandardCharsets.UTF_16));
+        final Visualizer visualizer = new Visualizer(Stringifiers.ORACLE);
+        visualizer.printGraphViz(graph.reverse());
+    }
+
     private ParseGraph parseResultGraph(final Environment env, final Token def) {
+        return parseResultGraph(env, def, enc());
+    }
+
+    private ParseGraph parseResultGraph(final Environment env, final Token def, final Encoding encoding) {
         try {
-            return def.parse(env, enc()).getEnvironment().order;
+            return def.parse(env, encoding).getEnvironment().order;
         }
         catch (final IOException e) {
             throw new AssertionError("Parsing failed", e);
