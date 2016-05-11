@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2016 Netherlands Forensic Institute
- * All rights reserved.
- */
 package io.parsingdata.util;
 
 import static io.parsingdata.metal.Shorthand.cho;
@@ -30,12 +26,7 @@ import io.parsingdata.metal.data.Environment;
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.ParseValue;
 import io.parsingdata.metal.token.Token;
-import io.parsingdata.util.Visualizer.ValueStringifier;
 
-/**
- *
- * @author Netherlands Forensic Institute.
- */
 public class VisualizerTest {
 
     private static final Token STAGE_3 = str("ength",

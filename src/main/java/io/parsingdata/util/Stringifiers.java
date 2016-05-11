@@ -19,7 +19,7 @@ public class Stringifiers {
         @Override
         public String toString(final ParseValue value) {
             final byte[] bytes = value.getValue();
-            return String.format("\"0x%s #%d%s\"", Long.toHexString(value.offset).toUpperCase(), bytes.length, toHexArr(bytes, 5));
+            return String.format("\"0x%02X #%d%s\"", value.offset, bytes.length, toHexArr(bytes, 5));
         }
     };
 

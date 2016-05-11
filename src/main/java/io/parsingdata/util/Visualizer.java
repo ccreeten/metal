@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2016 Netherlands Forensic Institute
- * All rights reserved.
- */
 package io.parsingdata.util;
 
 import java.util.HashMap;
