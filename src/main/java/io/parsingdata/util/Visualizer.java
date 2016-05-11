@@ -4,20 +4,11 @@
  */
 package io.parsingdata.util;
 
-import static java.nio.charset.CodingErrorAction.REPORT;
-
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.ParseItem;
-import io.parsingdata.metal.data.ParseValue;
 import io.parsingdata.metal.token.Cho;
 import io.parsingdata.metal.token.Def;
 import io.parsingdata.metal.token.Nod;
@@ -53,59 +44,7 @@ public final class Visualizer {
     }
 
     public Visualizer() {
-        this(new ValueStringifier() {
-
-            @Override
-            public String toString(final ParseValue value) {
-                final Charset charset = value.getEncoding() == null ? StandardCharsets.UTF_8 : value.getEncoding().getCharset();
-
-                final StringBuilder builder = new StringBuilder();
-                builder.append('"');
-                builder.append("[0x").append(Long.toHexString(value.offset).toUpperCase()).append("] ");
-                builder.append(value.getFullName()).append(' ');
-
-                final boolean isNumeric =
-                    value.getValue().length == 1 || // byte
-                    value.getValue().length == 4 || // int
-                    value.getValue().length == 8; // long
-
-                if (isNumeric) {
-                    // Possible Integer or Long
-                    builder.append("0x");
-                    builder.append(Long.toHexString(value.asNumeric().longValue()).toUpperCase());
-                    builder.append(' ');
-                    builder.append(value.asNumeric().longValue());
-                    builder.append('L');
-                }
-
-                try {
-                    final CharsetDecoder decoder = charset.newDecoder().onUnmappableCharacter(REPORT).onMalformedInput(REPORT);
-                    final CharBuffer buffer = decoder.decode(ByteBuffer.wrap(value.getValue()));
-
-                    if (validCharacterRange(buffer)) {
-                        // Valid String
-                        builder.append(isNumeric ? " " : "");
-                        builder.append(buffer.toString().trim()); // Trim 0 bytes
-                    }
-                }
-                catch (final CharacterCodingException e) {
-                    // Not a valid string for this encoding
-                }
-
-                return builder.append('"').toString();
-            }
-
-            private boolean validCharacterRange(final CharBuffer buffer) {
-                for (int i = 0; i < buffer.length(); i++) {
-                    final int character = buffer.get();
-                    if (character < ' ' || character > '~') {
-                        return false;
-                    }
-                }
-                buffer.rewind();
-                return true;
-            }
-        });
+        this(Stringifiers.DEFAULT);
     }
 
     public Visualizer(final ValueStringifier stringifier) {
@@ -166,10 +105,5 @@ public final class Visualizer {
 
     private String getHSVString(final String def) {
         return COLORS.getOrDefault(def, "0.0 0.0 0.0");
-    }
-
-    public static interface ValueStringifier {
-
-        public String toString(ParseValue value);
     }
 }
