@@ -1,13 +1,5 @@
 package io.parsingdata.util;
 
-import static java.nio.charset.CodingErrorAction.REPORT;
-
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import io.parsingdata.metal.data.ParseValue;
@@ -27,12 +19,10 @@ public class Stringifiers {
 
         @Override
         public String toString(final ParseValue value) {
-            final Charset charset = value.getEncoding() == null ? StandardCharsets.UTF_8 : value.getEncoding().getCharset();
-
             final StringBuilder builder = new StringBuilder();
             builder.append('"');
-            builder.append("[0x").append(Long.toHexString(value.offset).toUpperCase()).append("] ");
-            builder.append(value.getFullName()).append(' ');
+            builder.append("[0x").append(Long.toHexString(value.offset).toUpperCase()).append("|");
+            builder.append(value.getFullName()).append("] ");
 
             final boolean isNumeric = value.getValue().length == 1 || // byte
             value.getValue().length == 4 || // int
@@ -47,34 +37,24 @@ public class Stringifiers {
                 builder.append('L');
             }
 
-            try {
-                final CharsetDecoder decoder = charset.newDecoder().onUnmappableCharacter(REPORT).onMalformedInput(REPORT);
-                final CharBuffer buffer = decoder.decode(ByteBuffer.wrap(value.getValue()));
-
-                if (validCharacterRange(buffer)) {
-                    // Valid String
-                    builder.append(isNumeric ? " " : "");
-                    builder.append(buffer.toString().trim()); // Trim 0 bytes
-                }
+            final String string = value.asString().trim();
+            if (isTextualString(string)) {
+                // Valid String
+                builder.append(isNumeric ? " " : "");
+                builder.append(string);
             }
-            catch (final CharacterCodingException e) {
-                // Not a valid string for this encoding
-            }
-
             return builder.append('"').toString();
         }
-
-        private boolean validCharacterRange(final CharBuffer buffer) {
-            for (int i = 0; i < buffer.length(); i++) {
-                final int character = buffer.get();
-                if (character < ' ' || character > '~') {
-                    return false;
-                }
-            }
-            buffer.rewind();
-            return true;
-        }
     };
+
+    private static boolean isTextualString(final String string) {
+        for (final char c : string.toCharArray()) {
+            if (c < ' ' || c > '~') {
+                return false;
+            }
+        }
+        return true;
+    }
 
     private static String toHexArr(final byte[] bytes, final int maxLength) {
         return toHexArr(Arrays.copyOfRange(bytes, 0, Math.min(bytes.length, maxLength)));

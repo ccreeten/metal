@@ -75,6 +75,13 @@ public class VisualizerTest {
         visualizer.printGraphViz(graph.reverse());
     }
 
+    @Test
+    public void test() {
+        final ParseGraph graph = parseResultGraph(stream(0x77, 0x77, 0x77), def("www", 3));
+        final Visualizer visualizer = new Visualizer(Stringifiers.ORACLE);
+        visualizer.printGraphViz(graph.reverse());
+    }
+
     private ParseGraph parseResultGraph(final Environment env, final Token def) {
         try {
             return def.parse(env, enc()).getEnvironment().order;
