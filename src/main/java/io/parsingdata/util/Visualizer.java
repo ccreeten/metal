@@ -26,7 +26,7 @@ public final class Visualizer {
     private static final Class<?>[] TOKENS = {Cho.class, Def.class, Nod.class, Opt.class, Pre.class, Rep.class, RepN.class, Seq.class, Str.class, Sub.class, While.class};
     private static final Map<String, String> COLORS = new HashMap<>();
 
-    private final ValueStringifier stringifier;
+    private final Stringifier stringifier;
 
     static {
         double hue = 0.0;
@@ -40,10 +40,10 @@ public final class Visualizer {
     }
 
     public Visualizer() {
-        this(Stringifiers.DEFAULT);
+        this(Stringifiers.GRAPHVIZ);
     }
 
-    public Visualizer(final ValueStringifier stringifier) {
+    public Visualizer(final Stringifier stringifier) {
         this.stringifier = stringifier;
     }
 

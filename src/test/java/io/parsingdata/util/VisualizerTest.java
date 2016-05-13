@@ -53,7 +53,7 @@ public class VisualizerTest {
     @Test
     public void testReps() {
         final ParseGraph graph = parseResultGraph(stream(0xCA, 0xFE, 0xBA, 0xBE), REPS);
-        final Visualizer visualizer = new Visualizer(new ValueStringifier() {
+        final Visualizer visualizer = new Visualizer(new Stringifier() {
 
             @Override
             public String toString(final ParseValue value) {
@@ -80,14 +80,21 @@ public class VisualizerTest {
     @Test
     public void testUTF8() {
         final ParseGraph graph = parseResultGraph(stream(0x77, 0x77, 0x77), def("www", 3));
-        final Visualizer visualizer = new Visualizer(Stringifiers.ORACLE);
+        final Visualizer visualizer = new Visualizer();
         visualizer.printGraphViz(graph.reverse());
     }
 
     @Test
     public void testUTF16() {
         final ParseGraph graph = parseResultGraph(stream(0x00, 0x77, 0x00, 0x77, 0x00, 0x77), def("www", 6), new Encoding(StandardCharsets.UTF_16));
-        final Visualizer visualizer = new Visualizer(Stringifiers.ORACLE);
+        final Visualizer visualizer = new Visualizer();
+        visualizer.printGraphViz(graph.reverse());
+    }
+
+    @Test
+    public void test9Bytes() {
+        final ParseGraph graph = parseResultGraph(stream(9, 8, 7, 6, 5, 4, 3, 2, 1), def("bytes", 9));
+        final Visualizer visualizer = new Visualizer();
         visualizer.printGraphViz(graph.reverse());
     }
 

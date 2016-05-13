@@ -1,12 +1,26 @@
 package io.parsingdata.util;
 
+import java.math.BigInteger;
 import java.util.Arrays;
+
+import org.apache.commons.codec.binary.Hex;
 
 import io.parsingdata.metal.data.ParseValue;
 
 public class Stringifiers {
 
-    public static final ValueStringifier DEFAULT = new ValueStringifier() {
+    /** Returns toString of the parseValue. */
+    public static final Stringifier BASIC = new Stringifier() {
+
+        @Override
+        public String toString(final ParseValue value) {
+            final String string = value.toString();
+            return string.substring(0, Math.min(string.length(), 500));
+        }
+    };
+
+    /** Returns byte count and first 5 bytes, together with offset. */
+    public static final Stringifier BYTES = new Stringifier() {
 
         @Override
         public String toString(final ParseValue value) {
@@ -15,35 +29,96 @@ public class Stringifiers {
         }
     };
 
-    public static final ValueStringifier ORACLE = new ValueStringifier() {
+    /** Returns the value name, together with offset. */
+    public static final Stringifier NAMES = new Stringifier() {
 
         @Override
         public String toString(final ParseValue value) {
-            final StringBuilder builder = new StringBuilder();
-            builder.append('"');
-            builder.append("[0x").append(Long.toHexString(value.offset).toUpperCase()).append("|");
-            builder.append(value.getFullName()).append("] ");
+            return String.format("0x%s (%d)| %s ",
+                                 Long.toString(value.getOffset(), 16).toUpperCase(),
+                                 value.getOffset(),
+                                 value.getName());
 
-            final boolean isNumeric = value.getValue().length == 1 || // byte
-            value.getValue().length == 4 || // int
-            value.getValue().length == 8; // long
+        }
+    };
+
+    /** Tries to guess the type of the data and return a logical representation for it. */
+    public static final Stringifier ORACLE = new Stringifier() {
+
+        @Override
+        public String toString(final ParseValue value) {
+            final StringBuilder builder = new StringBuilder()
+                .append("0x")
+                .append(Long.toHexString(value.offset).toUpperCase())
+                .append("| ")
+                .append(value.getFullName())
+                .append(":");
+
+            final boolean isNumeric =
+                value.asNumeric().compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0 &&
+                value.asNumeric().compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0;
 
             if (isNumeric) {
-                // Possible Integer or Long
-                builder.append("0x");
-                builder.append(Long.toHexString(value.asNumeric().longValue()).toUpperCase());
-                builder.append(' ');
-                builder.append(value.asNumeric().longValue());
-                builder.append('L');
+                builder.append(String.format(" numeric: [%d]", value.asNumeric().longValue()));
             }
 
             final String string = value.asString().trim();
             if (isTextualString(string)) {
-                // Valid String
-                builder.append(isNumeric ? " " : "");
-                builder.append(string);
+                builder.append(String.format(" string: [%s]", string));
             }
-            return builder.append('"').toString();
+
+            return builder.append(" " + toHexArr(value.getValue(), 8)).toString();
+        }
+    };
+
+    /** Tries to guess the type of the data and return a logical representation for it. */
+    public static final Stringifier GRAPHVIZ = new Stringifier() {
+
+        @Override
+        public String toString(final ParseValue value) {
+            final StringBuilder builder = new StringBuilder()
+                .append("\"0x")
+                .append(Long.toHexString(value.offset).toUpperCase())
+                .append("| ")
+                .append(value.getFullName())
+                .append(":");
+
+            final boolean isNumeric =
+                value.asNumeric().compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0 &&
+                value.asNumeric().compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0;
+
+            if (isNumeric) {
+                builder.append(String.format(" numeric: [%d]", value.asNumeric().longValue()));
+            }
+
+            final String string = value.asString().trim();
+            final boolean isTextualString = !string.isEmpty() && isTextualString(string);
+
+            if (isTextualString) {
+                builder.append(String.format(" string: [%s]", string));
+            }
+
+            if (!isNumeric && !isTextualString) {
+                builder.append(" bytes: " + toHexArr(value.getValue(), 8));
+            }
+            return builder.append("\"").toString();
+        }
+    };
+
+
+    /** Returns numeric/string/bytes, together with offset and name. */
+    public static final Stringifier ALL = new Stringifier() {
+
+        @Override
+        public String toString(final ParseValue value) {
+            final String string = String.format("0x%s (%d)| %s - numeric: [%d] - string: [%s] - bytes [%s]",
+                                                Long.toString(value.getOffset(), 16).toUpperCase(),
+                                                value.getOffset(),
+                                                value.getName(),
+                                                value.asNumeric(),
+                                                value.asString(),
+                                                Hex.encodeHexString(value.getValue()).toUpperCase());
+            return string.substring(0, Math.min(string.length(), 500));
         }
     };
 
