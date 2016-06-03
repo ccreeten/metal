@@ -14,8 +14,7 @@ public class Stringifiers {
 
         @Override
         public String toString(final ParseValue value) {
-            final String string = value.toString();
-            return string.substring(0, Math.min(string.length(), 500));
+            return value.toString();
         }
     };
 
@@ -54,9 +53,7 @@ public class Stringifiers {
                 .append(value.getFullName())
                 .append(":");
 
-            final boolean isNumeric =
-                value.asNumeric().compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0 &&
-                value.asNumeric().compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0;
+            final boolean isNumeric = value.asNumeric().compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0 && value.asNumeric().compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0;
 
             if (isNumeric) {
                 builder.append(String.format(" numeric: [%d]", value.asNumeric().longValue()));
@@ -67,7 +64,7 @@ public class Stringifiers {
                 builder.append(String.format(" string: [%s]", string));
             }
 
-            return builder.append(" " + toHexArr(value.getValue(), 8)).toString();
+            return builder.append(" " + toHexArr(value.getValue(), 16)).append(" # bytes: " + value.getValue().length).toString();
         }
     };
 
@@ -83,9 +80,7 @@ public class Stringifiers {
                 .append(value.getFullName())
                 .append(":");
 
-            final boolean isNumeric =
-                value.asNumeric().compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0 &&
-                value.asNumeric().compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0;
+            final boolean isNumeric = value.asNumeric().compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0 && value.asNumeric().compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0;
 
             if (isNumeric) {
                 builder.append(String.format(" numeric: [%d]", value.asNumeric().longValue()));
@@ -95,7 +90,7 @@ public class Stringifiers {
             final boolean isTextualString = !string.isEmpty() && isTextualString(string);
 
             if (isTextualString) {
-                builder.append(String.format(" string: [%s]", string));
+                builder.append(String.format(" string: [%s]", string.replaceAll("\"", "")));
             }
 
             if (!isNumeric && !isTextualString) {
@@ -136,6 +131,9 @@ public class Stringifiers {
     }
 
     private static String toHexArr(final byte[] bytes) {
+        if (bytes.length == 0) {
+            return "";
+        }
         final StringBuilder sb = new StringBuilder();
         sb.append("[");
         for (int i = 0; i < bytes.length - 1; i++) {

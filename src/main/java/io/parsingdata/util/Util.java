@@ -61,7 +61,11 @@ public final class Util {
     private static final class CompareByOffset implements Comparator<ParseValue> {
         @Override
         public int compare(final ParseValue x, final ParseValue y) {
-            return Long.compare(x.getOffset(), y.getOffset());
+            final int cmp = Long.compare(x.getOffset(), y.getOffset());
+            if (cmp == 0) {
+                return Integer.compare(x.getValue().length, y.getValue().length);
+            }
+            return cmp;
         }
     }
 }
