@@ -19,6 +19,9 @@ package io.parsingdata.metal.data;
 import static io.parsingdata.metal.Util.checkNotNull;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import io.parsingdata.metal.data.selection.ByItem;
 import io.parsingdata.metal.data.selection.ByName;
@@ -37,6 +40,8 @@ public class ParseGraph implements ParseItem {
     public final Token definition;
     public final long size;
 
+    private final Map<String, ParseValue> lookup;
+
     public static final Token NONE = new Token(null) {
         @Override protected ParseResult parseImpl(final String scope, final Environment env, final Encoding enc) throws IOException { throw new IllegalStateException("This placeholder may not be invoked."); }
         @Override public String toString() { return "None"; };
@@ -50,6 +55,16 @@ public class ParseGraph implements ParseItem {
         branched = false;
         this.definition = checkNotNull(definition, "definition");
         size = 0;
+        lookup = new HashMap<>();
+    }
+
+    private ParseGraph(final Token definition, final Map<String, ParseValue> lookup) {
+        head = null;
+        tail = null;
+        branched = false;
+        this.definition = checkNotNull(definition, "definition");
+        size = 0;
+        this.lookup = lookup;
     }
 
     private ParseGraph(final ParseItem head, final ParseGraph tail, final Token definition, final boolean branched) {
@@ -59,6 +74,30 @@ public class ParseGraph implements ParseItem {
         this.branched = branched;
         this.definition = checkNotNull(definition, "definition");
         size = tail.size + 1;
+        lookup = new HashMap<>();
+        if (head.isValue()) {
+            lookup.put(head.asValue().name, head.asValue());
+        }
+        else if (head.isGraph()) {
+            lookup.putAll(head.asGraph().lookup);
+        }
+        for (final Entry<String, ParseValue> entry : tail.lookup.entrySet()) {
+            if (!lookup.containsKey(entry.getKey())) {
+                lookup.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    private ParseGraph(final ParseItem head, final ParseGraph tail, final Token definition, final boolean branched, final Map<String, ParseValue> lookup) {
+        this.head = checkNotNull(head, "head");
+        if (head.isValue() && branched) {
+            throw new IllegalArgumentException("Argument branch cannot be true when head contains a ParseValue.");
+        }
+        this.tail = checkNotNull(tail, "tail");
+        this.branched = branched;
+        this.definition = checkNotNull(definition, "definition");
+        size = tail.size + 1;
+        this.lookup = lookup;
     }
 
     // TODO see ByItem, this constructor used to be private
@@ -66,9 +105,18 @@ public class ParseGraph implements ParseItem {
         this(head, tail, definition, false);
     }
 
+    private ParseGraph(final ParseItem head, final ParseGraph tail, final Token definition, final Map<String, ParseValue> lookup) {
+        this(head, tail, definition, false, lookup);
+    }
+
     public ParseGraph add(final ParseValue head) {
-        if (branched) { return new ParseGraph(this.head.asGraph().add(head), tail, this.definition, true); }
-        return new ParseGraph(head, this, this.definition);
+        final Map<String, ParseValue> lookup = new HashMap<>();
+        lookup.putAll(this.lookup);
+        lookup.put(head.name, head);
+        if (branched) {
+            return new ParseGraph(this.head.asGraph().add(head), tail, this.definition, true, lookup);
+        }
+        return new ParseGraph(head, this, this.definition, lookup);
     }
 
     public ParseGraph add(final ParseRef ref) {
@@ -119,7 +167,7 @@ public class ParseGraph implements ParseItem {
     }
 
     public ParseValue get(final String name) {
-        return ByName.get(this, name);
+        return lookup.get(name);
     }
 
     public ParseItem get(final Token definition) {
