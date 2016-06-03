@@ -58,15 +58,6 @@ public class ParseGraph implements ParseItem {
         lookup = new HashMap<>();
     }
 
-    private ParseGraph(final Token definition, final Map<String, ParseValue> lookup) {
-        head = null;
-        tail = null;
-        branched = false;
-        this.definition = checkNotNull(definition, "definition");
-        size = 0;
-        this.lookup = lookup;
-    }
-
     private ParseGraph(final ParseItem head, final ParseGraph tail, final Token definition, final boolean branched) {
         this.head = checkNotNull(head, "head");
         if (head.isValue() && branched) { throw new IllegalArgumentException("Argument branch cannot be true when head contains a ParseValue."); }
@@ -75,15 +66,11 @@ public class ParseGraph implements ParseItem {
         this.definition = checkNotNull(definition, "definition");
         size = tail.size + 1;
         lookup = new HashMap<>();
-        if (head.isValue()) {
-            lookup.put(head.asValue().name, head.asValue());
-        }
-        else if (head.isGraph()) {
-            lookup.putAll(head.asGraph().lookup);
-        }
+        if (head.isValue()) { lookup.put(head.asValue().name, head.asValue()); }
+        else if (head.isGraph()) { lookup.putAll(head.asGraph().lookup); }
         for (final Entry<String, ParseValue> entry : tail.lookup.entrySet()) {
-            if (!lookup.containsKey(entry.getKey())) {
-                lookup.put(entry.getKey(), entry.getValue());
+            if (!lookup.containsKey(entry.getKey())) { 
+                lookup.put(entry.getKey(), entry.getValue()); 
             }
         }
     }
@@ -113,9 +100,7 @@ public class ParseGraph implements ParseItem {
         final Map<String, ParseValue> lookup = new HashMap<>();
         lookup.putAll(this.lookup);
         lookup.put(head.name, head);
-        if (branched) {
-            return new ParseGraph(this.head.asGraph().add(head), tail, this.definition, true, lookup);
-        }
+        if (branched) { return new ParseGraph(this.head.asGraph().add(head), tail, this.definition, true, lookup); }
         return new ParseGraph(head, this, this.definition, lookup);
     }
 
@@ -131,9 +116,7 @@ public class ParseGraph implements ParseItem {
 
     public ParseGraph closeBranch() {
         if (!branched) { throw new IllegalStateException("Cannot close branch that is not open."); }
-        if (head.asGraph().branched) {
-            return new ParseGraph(head.asGraph().closeBranch(), tail, this.definition, true);
-        }
+        if (head.asGraph().branched) { return new ParseGraph(head.asGraph().closeBranch(), tail, this.definition, true); }
         return new ParseGraph(head, tail, this.definition, false);
     }
 
