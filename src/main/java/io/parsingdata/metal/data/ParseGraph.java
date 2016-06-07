@@ -69,8 +69,8 @@ public class ParseGraph implements ParseItem {
         if (head.isValue()) { lookup.put(head.asValue().name, head.asValue()); }
         else if (head.isGraph()) { lookup.putAll(head.asGraph().lookup); }
         for (final Entry<String, ParseValue> entry : tail.lookup.entrySet()) {
-            if (!lookup.containsKey(entry.getKey())) { 
-                lookup.put(entry.getKey(), entry.getValue()); 
+            if (!lookup.containsKey(entry.getKey())) {
+                lookup.put(entry.getKey(), entry.getValue());
             }
         }
     }
@@ -150,6 +150,11 @@ public class ParseGraph implements ParseItem {
     }
 
     public ParseValue get(final String name) {
+        if (!lookup.containsKey(name)) {
+            final ParseValue value = ByName.get(this, name);
+            lookup.put(name, value);
+            return value;
+        }
         return lookup.get(name);
     }
 
