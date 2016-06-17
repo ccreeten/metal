@@ -40,9 +40,14 @@ public class Rep extends Token {
     }
 
     private ParseResult iterate(final String scope, final Environment env, final Encoding enc) throws IOException {
-        final ParseResult res = _op.parse(scope, env, enc);
-        if (res.succeeded()) { return iterate(scope, res.getEnvironment(), enc); }
-        return new ParseResult(true, env);
+        Environment sEnv = env;
+        while (true) {
+            final ParseResult res = _op.parse(scope, sEnv, enc);
+            if (!res.succeeded()) {
+                return new ParseResult(true, sEnv);
+            }
+            sEnv = res.getEnvironment();
+        }
     }
 
     @Override

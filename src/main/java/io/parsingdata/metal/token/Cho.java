@@ -16,14 +16,14 @@
 
 package io.parsingdata.metal.token;
 
+import static io.parsingdata.metal.Util.checkContainsNoNulls;
+
+import java.io.IOException;
+
 import io.parsingdata.metal.Util;
 import io.parsingdata.metal.data.Environment;
 import io.parsingdata.metal.data.ParseResult;
 import io.parsingdata.metal.encoding.Encoding;
-
-import java.io.IOException;
-
-import static io.parsingdata.metal.Util.checkContainsNoNulls;
 
 public class Cho extends Token {
 
@@ -32,21 +32,32 @@ public class Cho extends Token {
     public Cho(final Encoding enc, final Token... tokens) {
         super(enc);
         _tokens = checkContainsNoNulls(tokens, "tokens");
-        if (tokens.length < 2) { throw new IllegalArgumentException("At least two Tokens are required."); }
+        if (tokens.length < 2) {
+            throw new IllegalArgumentException("At least two Tokens are required.");
+        }
     }
 
     @Override
     protected ParseResult parseImpl(final String scope, final Environment env, final Encoding enc) throws IOException {
         final ParseResult res = iterate(scope, new Environment(env.order.addBranch(this), env.input, env.offset), enc, 0);
-        if (res.succeeded()) { return new ParseResult(true, new Environment(res.getEnvironment().order.closeBranch(), res.getEnvironment().input, res.getEnvironment().offset)); }
+        if (res.succeeded()) {
+            return new ParseResult(true, new Environment(res.getEnvironment().order.closeBranch(), res.getEnvironment().input, res.getEnvironment().offset));
+        }
         return new ParseResult(false, env);
     }
 
     private ParseResult iterate(final String scope, final Environment env, final Encoding enc, final int index) throws IOException {
-        if (index >= _tokens.length) { return new ParseResult(false, env); }
-        final ParseResult res = _tokens[index].parse(scope, env, enc);
-        if (res.succeeded()) { return res; }
-        return iterate(scope, env, enc, index + 1);
+        int sIndex = index;
+        while (true) {
+            if (sIndex >= _tokens.length) {
+                return new ParseResult(false, env);
+            }
+            final ParseResult res = _tokens[sIndex].parse(scope, env, enc);
+            if (res.succeeded()) {
+                return res;
+            }
+            sIndex++;
+        }
     }
 
     @Override
