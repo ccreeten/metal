@@ -16,6 +16,8 @@
 
 package io.parsingdata.metal.data.selection;
 
+import java.util.Stack;
+
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.ParseItem;
 import io.parsingdata.metal.data.ParseValue;
@@ -27,31 +29,48 @@ public class ByName {
      * @param name Name of the value
      * @return The first value (bottom-up) with the provided name in this graph
      */
-    public static ParseValue get(final ParseGraph graph, final String name) {
-        if (graph.isEmpty()) { return null; }
-        final ParseItem head = graph.head;
-        if (head.isValue() && head.asValue().matches(name)) { return head.asValue(); }
-        if (head.isGraph()) {
-            final ParseValue val = get(head.asGraph(), name);
-            if (val != null) { return val; }
+    public static ParseValue get(final ParseGraph g, final String name) {
+        final Stack<ParseGraph> stack = new Stack<>();
+        stack.push(g);
+
+        while (!stack.isEmpty()) {
+            final ParseGraph graph = stack.pop();
+            if (graph.isEmpty()) {
+                continue;
+            }
+            stack.push(graph.tail);
+            final ParseItem head = graph.head;
+            if (head.isValue() && head.asValue().matches(name)) {
+                return head.asValue();
+            }
+            if (head.isGraph()) {
+                stack.push(head.asGraph());
+            }
         }
-        return get(graph.tail, name);
+
+        return null;
     }
 
     /**
      * @param name Name of the value
      * @return All values with the provided name in this graph
      */
-    public static ParseValueList getAll(ParseGraph parseGraph, String name) {
+    public static ParseValueList getAll(final ParseGraph parseGraph, final String name) {
         return getAll(parseGraph, name, ParseValueList.EMPTY);
     }
 
     private static ParseValueList getAll(final ParseGraph graph, final String name, final ParseValueList result) {
-        if (graph.isEmpty()) { return result; }
+        if (graph.isEmpty()) {
+            return result;
+        }
         final ParseValueList tailResults = getAll(graph.tail, name, result);
         final ParseItem head = graph.head;
-        if (head.isValue() && head.asValue().matches(name)) { return tailResults.add(head.asValue()); }
-        if (head.isGraph()) { return tailResults.add(getAll(head.asGraph(), name, result)); }
+        if (head.isValue() && head.asValue().matches(name)) {
+            return tailResults.add(head.asValue());
+        }
+        if (head.isGraph()) {
+            return tailResults.add(getAll(head.asGraph(), name, result));
+        }
         return tailResults;
     }
 
