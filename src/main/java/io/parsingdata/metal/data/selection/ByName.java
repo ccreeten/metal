@@ -56,22 +56,34 @@ public class ByName {
      * @return All values with the provided name in this graph
      */
     public static ParseValueList getAll(final ParseGraph parseGraph, final String name) {
-        return getAll(parseGraph, name, ParseValueList.EMPTY);
+        return getAllIter(parseGraph, name);
     }
 
-    private static ParseValueList getAll(final ParseGraph graph, final String name, final ParseValueList result) {
-        if (graph.isEmpty()) {
-            return result;
-        }
-        final ParseValueList tailResults = getAll(graph.tail, name, result);
-        final ParseItem head = graph.head;
-        if (head.isValue() && head.asValue().matches(name)) {
-            return tailResults.add(head.asValue());
-        }
-        if (head.isGraph()) {
-            return tailResults.add(getAll(head.asGraph(), name, result));
-        }
-        return tailResults;
-    }
+    private static ParseValueList getAllIter(final ParseGraph g, final String name) {
+        final Stack<ParseItem> stack = new Stack<>();
+        stack.push(g);
 
+        ParseValueList list = ParseValueList.EMPTY;
+        while (!stack.isEmpty()) {
+            final ParseItem next = stack.pop();
+
+            if (next.isRef()) {
+                continue;
+            }
+            else if (next.isValue()) {
+                if (next.asValue().matches(name)) {
+                    list = list.add(next.asValue());
+                }
+                continue;
+            }
+            else if (next.asGraph().isEmpty()) {
+                continue;
+            }
+
+            stack.push(next.asGraph().head);
+            stack.push(next.asGraph().tail);
+        }
+
+        return list;
+    }
 }
