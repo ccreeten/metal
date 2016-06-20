@@ -115,7 +115,7 @@ public class ParseGraph implements ParseItem {
     }
 
     public ParseGraph reverse() {
-        return Reversal.reverse(this, EMPTY);
+        return Reversal.reverse(this);
     }
 
     public ParseValue get(final String name) {

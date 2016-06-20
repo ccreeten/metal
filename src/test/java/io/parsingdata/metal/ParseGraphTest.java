@@ -16,20 +16,31 @@
 
 package io.parsingdata.metal;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import static io.parsingdata.metal.Shorthand.con;
 import static io.parsingdata.metal.Shorthand.def;
+import static io.parsingdata.metal.Shorthand.opt;
+import static io.parsingdata.metal.Shorthand.seq;
 import static io.parsingdata.metal.Shorthand.sub;
 import static io.parsingdata.metal.TokenDefinitions.any;
 import static io.parsingdata.metal.util.EncodingFactory.enc;
+import static io.parsingdata.metal.util.EnvironmentFactory.stream;
+
+import java.io.IOException;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.ParseGraphList;
 import io.parsingdata.metal.data.ParseItem;
 import io.parsingdata.metal.data.ParseRef;
 import io.parsingdata.metal.data.ParseValue;
 import io.parsingdata.metal.token.Token;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 public class ParseGraphTest {
 
@@ -179,4 +190,31 @@ public class ParseGraphTest {
         Assert.assertEquals(f, subGraph.tail.tail.head.asGraph().head);
     }
 
+    @Test
+    public void testDefinitionsAfterReverse() throws IOException {
+        final ParseGraph graph = seq(def("byte1", 1), def("byte2", 2), opt(def("byte3", 1))).parse(stream(1, 2, 3), enc()).getEnvironment().order;
+        final ParseGraph reversedReverse = graph.reverse().reverse();
+
+        assertEqualDefinitions(graph, reversedReverse);
+    }
+
+    private void assertEqualDefinitions(final ParseGraph graph1, final ParseGraph graph2) {
+        if (graph1.isEmpty()) {
+            assertTrue(graph2.isEmpty());
+            return;
+        }
+
+        final ParseItem head1 = graph1.head;
+        final ParseItem head2 = graph2.head;
+
+        assertThat(graph1.getDefinition(), is(equalTo(graph2.getDefinition())));
+        if (head1.isValue()) {
+            assertThat(head1.asValue().getDefinition(), is(equalTo(head2.asValue().getDefinition())));
+        }  else if (head1.isRef()) {
+            assertThat(head1.asRef().getDefinition(), is(equalTo(head2.asRef().getDefinition())));
+        } else {
+            assertEqualDefinitions(graph1.head.asGraph(), graph2.head.asGraph());
+        }
+        assertEqualDefinitions(graph1.tail, graph2.tail);
+    }
 }

@@ -16,18 +16,45 @@
 
 package io.parsingdata.metal.data.transformation;
 
+import java.util.Stack;
+
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.ParseItem;
 
 public class Reversal {
 
-    public static ParseGraph reverse(ParseGraph oldGraph, ParseGraph newGraph) {
-        if (oldGraph.isEmpty()) { return newGraph; }
-        return reverse(oldGraph.tail, new ParseGraph(reverseItem(oldGraph.head), newGraph, oldGraph.definition));
-    }
+    public static ParseGraph reverse(final ParseGraph oldGraph) {
+        final Stack<ParseGraph> sOld = new Stack<>();
+        final Stack<ParseGraph> sNew = new Stack<>();
+        sOld.push(oldGraph);
+        sNew.push(ParseGraph.EMPTY);
 
-    private static ParseItem reverseItem(final ParseItem item) {
-        return item.isGraph() ? item.asGraph().reverse() : item;
+        while (sOld.size() > 1 || !sOld.peek().isEmpty()) {
+            final ParseGraph oldG = sOld.pop();
+            final ParseGraph newG = sNew.pop();
+
+            if (oldG.isEmpty()) {
+                sNew.push(new ParseGraph(newG, sNew.pop(), oldG.getDefinition()));
+                continue;
+            }
+
+            final ParseItem head = oldG.head;
+
+            if (head.isGraph()) {
+                sOld.push(oldG.tail);
+                sNew.push(newG);
+
+                sOld.push(head.asGraph());
+                sNew.push(ParseGraph.EMPTY);
+
+            }
+            else {
+                sOld.push(oldG.tail);
+                sNew.push(new ParseGraph(head, newG, oldG.getDefinition()));
+            }
+        }
+
+        return sNew.peek();
     }
 
 }
