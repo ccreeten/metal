@@ -29,17 +29,17 @@ public class ByName {
      * @param name Name of the value
      * @return The first value (bottom-up) with the provided name in this graph
      */
-    public static ParseValue get(final ParseGraph g, final String name) {
+    public static ParseValue get(final ParseGraph graph, final String name) {
         final Stack<ParseGraph> stack = new Stack<>();
-        stack.push(g);
+        stack.push(graph);
 
         while (!stack.isEmpty()) {
-            final ParseGraph graph = stack.pop();
-            if (graph.isEmpty()) {
+            final ParseGraph g = stack.pop();
+            if (g.isEmpty()) {
                 continue;
             }
-            stack.push(graph.tail);
-            final ParseItem head = graph.head;
+            stack.push(g.tail);
+            final ParseItem head = g.head;
             if (head.isValue() && head.asValue().matches(name)) {
                 return head.asValue();
             }
@@ -55,18 +55,13 @@ public class ByName {
      * @param name Name of the value
      * @return All values with the provided name in this graph
      */
-    public static ParseValueList getAll(final ParseGraph parseGraph, final String name) {
-        return getAllIter(parseGraph, name);
-    }
-
-    private static ParseValueList getAllIter(final ParseGraph g, final String name) {
+    public static ParseValueList getAll(final ParseGraph graph, final String name) {
         final Stack<ParseItem> stack = new Stack<>();
-        stack.push(g);
+        stack.push(graph);
 
         ParseValueList list = ParseValueList.EMPTY;
         while (!stack.isEmpty()) {
             final ParseItem next = stack.pop();
-
             if (next.isRef()) {
                 continue;
             }

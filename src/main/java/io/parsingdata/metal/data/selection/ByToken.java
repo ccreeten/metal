@@ -16,6 +16,8 @@
 
 package io.parsingdata.metal.data.selection;
 
+import java.util.Stack;
+
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.ParseItem;
 import io.parsingdata.metal.data.ParseItemList;
@@ -23,34 +25,71 @@ import io.parsingdata.metal.token.Token;
 
 public class ByToken {
 
-    private ByToken() {}
+    private ByToken() {
+    }
 
     public static ParseItem get(final ParseGraph graph, final Token definition) {
-        if (definition == null) { throw new IllegalArgumentException("Argument definition may not be null."); }
-        if (graph.definition == definition) { return graph; }
-        if (graph.isEmpty()) { return null; }
-        final ParseItem head = graph.head;
-        if (head.isValue() && head.asValue().definition == definition) { return head; }
-        if (head.isGraph()) {
-            final ParseItem item = get(head.asGraph(), definition);
-            if (item != null) { return item; }
+        if (definition == null) {
+            throw new IllegalArgumentException("Argument definition may not be null.");
         }
-        return get(graph.tail, definition);
+
+        final Stack<ParseGraph> stack = new Stack<>();
+        stack.push(graph);
+
+        while (!stack.isEmpty()) {
+            final ParseGraph g = stack.pop();
+            if (g.isEmpty()) {
+                continue;
+            }
+            if (g.getDefinition() == definition) {
+                return g;
+            }
+            stack.push(g.tail);
+            final ParseItem head = g.head;
+            if (head.isValue() && head.getDefinition() == definition) {
+                return head.asValue();
+            }
+            if (head.isGraph()) {
+                stack.push(head.asGraph());
+            }
+        }
+
+        return null;
     }
 
     public static ParseItemList getAll(final ParseGraph graph, final Token definition) {
-        if (definition == null) { throw new IllegalArgumentException("Argument definition may not be null."); }
-        return getAllRecursive(graph, definition);
-    }
+        if (definition == null) {
+            throw new IllegalArgumentException("Argument definition may not be null.");
+        }
 
-    private static ParseItemList getAllRecursive(final ParseGraph graph, final Token definition) {
-        if (graph.isEmpty()) { return ParseItemList.EMPTY; }
-        final ParseItemList tailResults = getAllRecursive(graph.tail, definition);
-        final ParseItemList results = graph.definition == definition ? tailResults.add(graph) : tailResults;
-        final ParseItem head = graph.head;
-        if (head.isValue() && head.asValue().definition == definition) { return results.add(head); }
-        if (head.isGraph()) { return results.add(getAllRecursive(head.asGraph(), definition)); }
-        return results;
+        final Stack<ParseItem> stack = new Stack<>();
+        stack.push(graph);
+
+        ParseItemList list = ParseItemList.EMPTY;
+        while (!stack.isEmpty()) {
+            final ParseItem next = stack.pop();
+            if (next.isRef()) {
+                continue;
+            }
+            else if (next.isValue()) {
+                if (next.asValue().getDefinition() == definition) {
+                    list = list.add(next.asValue());
+                }
+                continue;
+            }
+            else if (next.asGraph().isEmpty()) {
+                continue;
+            }
+
+            if (next.getDefinition() == definition) {
+                list = list.add(next);
+            }
+
+            stack.push(next.asGraph().head);
+            stack.push(next.asGraph().tail);
+        }
+
+        return list;
     }
 
 }
