@@ -34,7 +34,7 @@ public class Reversal {
             final ParseGraph newG = sNew.pop();
 
             if (oldG.isEmpty()) {
-                sNew.push(new ParseGraph(newG, sNew.pop(), oldG.getDefinition()));
+                sNew.push(new ParseGraph(newG, sNew.pop(), sOld.pop().getDefinition()));
                 continue;
             }
 
@@ -44,9 +44,9 @@ public class Reversal {
                 sOld.push(oldG.tail);
                 sNew.push(newG);
 
+                sOld.push(oldG);
                 sOld.push(head.asGraph());
                 sNew.push(ParseGraph.EMPTY);
-
             }
             else {
                 sOld.push(oldG.tail);
@@ -56,5 +56,4 @@ public class Reversal {
 
         return sNew.peek();
     }
-
 }

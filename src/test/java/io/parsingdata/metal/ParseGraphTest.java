@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import static io.parsingdata.metal.Shorthand.con;
 import static io.parsingdata.metal.Shorthand.def;
-import static io.parsingdata.metal.Shorthand.opt;
+import static io.parsingdata.metal.Shorthand.repn;
 import static io.parsingdata.metal.Shorthand.seq;
 import static io.parsingdata.metal.Shorthand.sub;
 import static io.parsingdata.metal.TokenDefinitions.any;
@@ -73,24 +73,23 @@ public class ParseGraphTest {
     }
 
     private static ParseValue makeVal(final char n, final long o) {
-        return new ParseValue("", Character.toString(n), def(Character.toString(n), o), o, new byte[] { (byte) n }, enc());
+        return new ParseValue("", Character.toString(n), def(Character.toString(n), o), o, new byte[]{(byte) n}, enc());
     }
 
     private ParseGraph makeSimpleGraph() {
-        return ParseGraph
-            .EMPTY
-            .add(a)        // [a]
-            .add(b)        // [b]
-            .addBranch(t)  //  +---+
-            .add(c)        //  |  [c]
-            .addBranch(t)  //  |   +---+
-            .add(d)        //  |   |  [d]
-            .add(e)        //  |   |  [e]
+        return ParseGraph.EMPTY
+            .add(a) // [a]
+            .add(b) // [b]
+            .addBranch(t) //  +---+
+            .add(c) //  |  [c]
+            .addBranch(t) //  |   +---+
+            .add(d) //  |   |  [d]
+            .add(e) //  |   |  [e]
             .closeBranch() //  |   +---+
-            .add(f)        //  |  [f]
+            .add(f) //  |  [f]
             .closeBranch() //  +---+
-            .add(g)        // [g]
-            .add(h);       // [h]
+            .add(g) // [g]
+            .add(h); // [h]
     }
 
     @Test
@@ -116,8 +115,7 @@ public class ParseGraphTest {
     }
 
     private ParseGraph makeCycleGraph() {
-        return ParseGraph
-            .EMPTY
+        return ParseGraph.EMPTY
             .add(a)
             .addBranch(t)
             .add(b)
@@ -138,8 +136,7 @@ public class ParseGraphTest {
     }
 
     private ParseGraph makeLongGraph() {
-        return ParseGraph
-            .EMPTY
+        return ParseGraph.EMPTY
             .add(a)
             .addBranch(t)
             .addBranch(t)
@@ -190,12 +187,60 @@ public class ParseGraphTest {
         Assert.assertEquals(f, subGraph.tail.tail.head.asGraph().head);
     }
 
+    // TODO test reverse graph != original graph
+
     @Test
-    public void testDefinitionsAfterReverse() throws IOException {
-        final ParseGraph graph = seq(def("byte1", 1), def("byte2", 2), opt(def("byte3", 1))).parse(stream(1, 2, 3), enc()).getEnvironment().order;
-        final ParseGraph reversedReverse = graph.reverse().reverse();
+    public void testDefinitionsAfterReverseSimpleCustom() throws IOException {
+        final ParseGraph graph = seq(def("1byte", 1), repn(def("abyte", 1), con(1))).parse(stream(1, 2, 3), enc()).getEnvironment().order;
+        final ParseGraph reverse = graph.reverse();
+        final ParseGraph reversedReverse = reverse.reverse();
 
         assertEqualDefinitions(graph, reversedReverse);
+    }
+
+    @Test
+    public void testValuesAfterReverseSimpleCustom() throws IOException {
+        final ParseGraph graph = seq(def("1byte", 1), repn(def("abyte", 1), con(1))).parse(stream(1, 2, 3), enc()).getEnvironment().order;
+        final ParseGraph reverse = graph.reverse();
+        final ParseGraph reversedReverse = reverse.reverse();
+
+        assertEqualValues(graph, reversedReverse);
+    }
+
+    @Test
+    public void testDefinitionsAfterReverseSimple() throws IOException {
+        final ParseGraph graph = makeSimpleGraph();
+        final ParseGraph reverse = graph.reverse();
+        final ParseGraph reversedReverse = reverse.reverse();
+
+        assertEqualDefinitions(graph, reversedReverse);
+    }
+
+    @Test
+    public void testValuesAfterReverseSimple() throws IOException {
+        final ParseGraph graph = makeSimpleGraph();
+        final ParseGraph reverse = graph.reverse();
+        final ParseGraph reversedReverse = reverse.reverse();
+
+        assertEqualValues(graph, reversedReverse);
+    }
+
+    @Test
+    public void testDefinitionsAfterReverseLongGraph() throws IOException {
+        final ParseGraph graph = makeLongGraph();
+        final ParseGraph reverse = graph.reverse();
+        final ParseGraph reversedReverse = reverse.reverse();
+
+        assertEqualDefinitions(graph, reversedReverse);
+    }
+
+    @Test
+    public void testValuesAfterReverseLongGraph() throws IOException {
+        final ParseGraph graph = makeLongGraph();
+        final ParseGraph reverse = graph.reverse();
+        final ParseGraph reversedReverse = reverse.reverse();
+
+        assertEqualValues(graph, reversedReverse);
     }
 
     private void assertEqualDefinitions(final ParseGraph graph1, final ParseGraph graph2) {
@@ -208,13 +253,33 @@ public class ParseGraphTest {
         final ParseItem head2 = graph2.head;
 
         assertThat(graph1.getDefinition(), is(equalTo(graph2.getDefinition())));
-        if (head1.isValue()) {
-            assertThat(head1.asValue().getDefinition(), is(equalTo(head2.asValue().getDefinition())));
-        }  else if (head1.isRef()) {
-            assertThat(head1.asRef().getDefinition(), is(equalTo(head2.asRef().getDefinition())));
-        } else {
+        if (head1.isValue() || head1.isRef()) {
+            assertThat(head1.getDefinition(), is(equalTo(head2.getDefinition())));
+        }
+        else {
             assertEqualDefinitions(graph1.head.asGraph(), graph2.head.asGraph());
         }
         assertEqualDefinitions(graph1.tail, graph2.tail);
+    }
+
+    private void assertEqualValues(final ParseGraph graph1, final ParseGraph graph2) {
+        if (graph1.isEmpty()) {
+            assertTrue(graph2.isEmpty());
+            return;
+        }
+
+        final ParseItem head1 = graph1.head;
+        final ParseItem head2 = graph2.head;
+
+        if (head1.isValue()) {
+            assertThat(head1.asValue().asNumeric(), is(equalTo(head2.asValue().asNumeric())));
+        }
+        else if (head1.isRef()) {
+            assertThat(head1.asRef().location, is(equalTo(head2.asRef().location)));
+        }
+        else {
+            assertEqualValues(graph1.head.asGraph(), graph2.head.asGraph());
+        }
+        assertEqualValues(graph1.tail, graph2.tail);
     }
 }
