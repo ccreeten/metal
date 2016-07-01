@@ -18,6 +18,7 @@ package io.parsingdata.metal.util;
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.data.ParseGraph.EMPTY;
 
+import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -150,5 +151,101 @@ public final class GraphUtil {
             newGraph = newGraph.add(new ParseRef(head.asRef().location, head.getDefinition()));
         }
         return updateGraph(newValue, graph.tail, newGraph);
+    }
+
+    /**
+     * Return the value with given name in the graph as a byte.
+     *
+     * @param graph the graph to search in
+     * @param name the name of the value to search for
+     * @return the value with given name in the graph as a byte
+     * @throws IllegalArgumentException when no value exists with given name
+     */
+    public static byte getByte(final ParseGraph graph, final String name) {
+        final ParseValue value = graph.get(name);
+        if (value == null) {
+            throw new IllegalArgumentException("Value doesn't exist: " + name);
+        }
+        return value.asNumeric().byteValue();
+    }
+
+    /**
+     * Return the value with given name in the graph as a byte array.
+     *
+     * @param graph the graph to search in
+     * @param name the name of the value to search for
+     * @return the value with given name in the graph as a byte array
+     * @throws IllegalArgumentException when no value exists with given name
+     */
+    public static byte[] getBytes(final ParseGraph graph, final String name) {
+        final ParseValue value = graph.get(name);
+        if (value == null) {
+            throw new IllegalArgumentException("Value doesn't exist: " + name);
+        }
+        return value.getValue();
+    }
+
+    /**
+     * Return the value with given name in the graph as an integer.
+     *
+     * @param graph the graph to search in
+     * @param name the name of the value to search for
+     * @return the value with given name in the graph as an integer
+     * @throws IllegalArgumentException when no value exists with given name
+     */
+    public static int getInt(final ParseGraph graph, final String name) {
+        final ParseValue value = graph.get(name);
+        if (value == null) {
+            throw new IllegalArgumentException("Value doesn't exist: " + name);
+        }
+        return value.asNumeric().intValue();
+    }
+
+    /**
+     * Return the value with given name in the graph as a long.
+     *
+     * @param graph the graph to search in
+     * @param name the name of the value to search for
+     * @return the value with given name in the graph as a long
+     * @throws IllegalArgumentException when no value exists with given name
+     */
+    public static long getLong(final ParseGraph graph, final String name) {
+        final ParseValue value = graph.get(name);
+        if (value == null) {
+            throw new IllegalArgumentException("Value doesn't exist: " + name);
+        }
+        return value.asNumeric().longValue();
+    }
+
+    /**
+     * Return the value with given name in the graph as a {@link BigInteger}.
+     *
+     * @param graph the graph to search in
+     * @param name the name of the value to search for
+     * @return the value with given name in the graph as a {@link BigInteger}
+     * @throws IllegalArgumentException when no value exists with given name
+     */
+    public static BigInteger getBigInt(final ParseGraph graph, final String name) {
+        final ParseValue value = graph.get(name);
+        if (value == null) {
+            throw new IllegalArgumentException("Value doesn't exist: " + name);
+        }
+        return value.asNumeric();
+    }
+
+    /**
+     * Return the value with given name in the graph as a {@link String}.
+     *
+     * @param graph the graph to search in
+     * @param name the name of the value to search for
+     * @return the value with given name in the graph as a {@link String}
+     * @throws IllegalArgumentException when no value exists with given name
+     */
+    public static String getString(final ParseGraph graph, final String name) {
+        final ParseValue value = graph.get(name);
+        if (value == null) {
+            throw new IllegalArgumentException("Value doesn't exist: " + name);
+        }
+        return value.asString();
     }
 }
