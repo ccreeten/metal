@@ -18,11 +18,12 @@ package io.parsingdata.metal.util;
 import static io.parsingdata.metal.Shorthand.eqNum;
 import static io.parsingdata.metal.Shorthand.expTrue;
 import static io.parsingdata.metal.Shorthand.gtNum;
+import static io.parsingdata.metal.Shorthand.ltNum;
 import static io.parsingdata.metal.Shorthand.not;
 import static io.parsingdata.metal.Shorthand.or;
 
 import io.parsingdata.metal.expression.Expression;
-import io.parsingdata.metal.expression.logical.LogicalExpression;
+import io.parsingdata.metal.expression.logical.BinaryLogicalExpression;
 import io.parsingdata.metal.expression.value.ValueExpression;
 
 /**
@@ -35,15 +36,63 @@ public final class CompoundExpression {
     private CompoundExpression() {
     }
 
-    public static LogicalExpression gtEqNum(final ValueExpression p) {
+    /**
+     * False expression.
+     *
+     * @return expression evaluating to false
+     */
+    public static Expression expFalse() {
+        return not(expTrue());
+    }
+
+    /**
+     * Greater than equals expression, evaluating to true when current value >= p.
+     *
+     * @param p the value to compare against
+     * @return expression evaluating to true if self >= p
+     */
+    public static BinaryLogicalExpression gtEqNum(final ValueExpression p) {
         return or(gtNum(p), eqNum(p));
     }
 
-    public static LogicalExpression gtEqNum(final ValueExpression c, final ValueExpression p) {
+    /**
+     * Greater than equals expression, evaluating to true when c >= p.
+     *
+     * @param p the value to compare against
+     * @return expression evaluating to true if c >= p
+     */
+    public static BinaryLogicalExpression gtEqNum(final ValueExpression c, final ValueExpression p) {
         return or(gtNum(c, p), eqNum(c, p));
     }
 
-    public static Expression expFalse() {
-        return not(expTrue());
+    /**
+     * Less than equals expression, evaluating to true when current value <= p.
+     *
+     * @param p the value to compare against
+     * @return expression evaluating to true if self <= p
+     */
+    public static BinaryLogicalExpression ltEqNum(final ValueExpression p) {
+        return or(eqNum(p), ltNum(p));
+    }
+
+    /**
+     * Less than equals expression, evaluating to true when c <= p.
+     *
+     * @param p the value to compare against
+     * @return expression evaluating to true if c <= p
+     */
+    public static BinaryLogicalExpression ltEqNum(final ValueExpression c, final ValueExpression p) {
+        return or(eqNum(c, p), ltNum(c, p));
+    }
+
+    /**
+     * Implication expression, evaluation to true when l -> r (i.e., !l || r).
+     *
+     * @param l the antecedent of the expression
+     * @param r the consequent of the expression
+     * @return expression evaluating to true if (!l || r)
+     */
+    public static BinaryLogicalExpression imp(final Expression l, final Expression r) {
+        return or(not(l), r);
     }
 }
