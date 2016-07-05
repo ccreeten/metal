@@ -48,7 +48,7 @@ public class ByOffset {
             if (head.isValue()) {
                 return getLowestOffsetValue(sGraph.tail, head.asValue());
             }
-            sGraph = graph.tail;
+            sGraph = sGraph.tail;
         }
         throw new IllegalStateException("Cannot determine lowest offset if graph does not contain a value.");
     }

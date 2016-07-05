@@ -38,8 +38,15 @@ public class ParseGraph implements ParseItem {
     public final long size;
 
     public static final Token NONE = new Token(null) {
-        @Override protected ParseResult parseImpl(final String scope, final Environment env, final Encoding enc) throws IOException { throw new IllegalStateException("This placeholder may not be invoked."); }
-        @Override public String toString() { return "None"; };
+        @Override
+        protected ParseResult parseImpl(final String scope, final Environment env, final Encoding enc) throws IOException {
+            throw new IllegalStateException("This placeholder may not be invoked.");
+        }
+
+        @Override
+        public String toString() {
+            return "None";
+        };
     };
 
     public static final ParseGraph EMPTY = new ParseGraph(NONE);
@@ -54,7 +61,9 @@ public class ParseGraph implements ParseItem {
 
     private ParseGraph(final ParseItem head, final ParseGraph tail, final Token definition, final boolean branched) {
         this.head = checkNotNull(head, "head");
-        if (head.isValue() && branched) { throw new IllegalArgumentException("Argument branch cannot be true when head contains a ParseValue."); }
+        if (head.isValue() && branched) {
+            throw new IllegalArgumentException("Argument branch cannot be true when head contains a ParseValue.");
+        }
         this.tail = checkNotNull(tail, "tail");
         this.branched = branched;
         this.definition = checkNotNull(definition, "definition");
@@ -67,22 +76,30 @@ public class ParseGraph implements ParseItem {
     }
 
     public ParseGraph add(final ParseValue head) {
-        if (branched) { return new ParseGraph(this.head.asGraph().add(head), tail, this.definition, true); }
+        if (branched) {
+            return new ParseGraph(this.head.asGraph().add(head), tail, this.definition, true);
+        }
         return new ParseGraph(head, this, this.definition);
     }
 
     public ParseGraph add(final ParseRef ref) {
-        if (branched) { return new ParseGraph(this.head.asGraph().add(ref), tail, this.definition, true); }
+        if (branched) {
+            return new ParseGraph(this.head.asGraph().add(ref), tail, this.definition, true);
+        }
         return new ParseGraph(ref, this, this.definition);
     }
 
     public ParseGraph addBranch(final Token definition) {
-        if (branched) { return new ParseGraph(this.head.asGraph().addBranch(definition), tail, this.definition, true); }
+        if (branched) {
+            return new ParseGraph(this.head.asGraph().addBranch(definition), tail, this.definition, true);
+        }
         return new ParseGraph(new ParseGraph(definition), this, this.definition, true);
     }
 
     public ParseGraph closeBranch() {
-        if (!branched) { throw new IllegalStateException("Cannot close branch that is not open."); }
+        if (!branched) {
+            throw new IllegalStateException("Cannot close branch that is not open.");
+        }
         if (head.asGraph().branched) {
             return new ParseGraph(head.asGraph().closeBranch(), tail, this.definition, true);
         }
@@ -98,8 +115,14 @@ public class ParseGraph implements ParseItem {
     }
 
     public boolean containsValue() {
-        if (isEmpty()) { return false; }
-        return head.isValue() || tail.containsValue();
+        ParseGraph sGraph = this;
+        while (!sGraph.isEmpty()) {
+            if (sGraph.head.isValue()) {
+                return true;
+            }
+            sGraph = sGraph.tail;
+        }
+        return false;
     }
 
     public ParseValue getLowestOffsetValue() {
@@ -130,11 +153,17 @@ public class ParseGraph implements ParseItem {
      * @return The first value (bottom-up) in this graph
      */
     public ParseValue current() {
-        if (isEmpty()) { return null; }
-        if (head.isValue()) { return head.asValue(); }
+        if (isEmpty()) {
+            return null;
+        }
+        if (head.isValue()) {
+            return head.asValue();
+        }
         if (head.isGraph()) {
             final ParseValue val = head.asGraph().current();
-            if (val != null) { return val; }
+            if (val != null) {
+                return val;
+            }
         }
         return tail.current(); // Ignore current if it's a reference (or an empty graph)
     }
@@ -155,13 +184,40 @@ public class ParseGraph implements ParseItem {
         return ByItem.getGraphAfter(this, lastHead);
     }
 
-    @Override public boolean isValue() { return false; }
-    @Override public boolean isGraph() { return true; }
-    @Override public boolean isRef() { return false; }
-    @Override public ParseValue asValue() { throw new UnsupportedOperationException("Cannot convert ParseGraph to ParseValue."); }
-    @Override public ParseGraph asGraph() { return this; }
-    @Override public ParseRef asRef() { throw new UnsupportedOperationException("Cannot convert ParseGraph to ParseRef."); }
-    @Override public Token getDefinition() { return definition; }
+    @Override
+    public boolean isValue() {
+        return false;
+    }
+
+    @Override
+    public boolean isGraph() {
+        return true;
+    }
+
+    @Override
+    public boolean isRef() {
+        return false;
+    }
+
+    @Override
+    public ParseValue asValue() {
+        throw new UnsupportedOperationException("Cannot convert ParseGraph to ParseValue.");
+    }
+
+    @Override
+    public ParseGraph asGraph() {
+        return this;
+    }
+
+    @Override
+    public ParseRef asRef() {
+        throw new UnsupportedOperationException("Cannot convert ParseGraph to ParseRef.");
+    }
+
+    @Override
+    public Token getDefinition() {
+        return definition;
+    }
 
     @Override
     public String toString() {
