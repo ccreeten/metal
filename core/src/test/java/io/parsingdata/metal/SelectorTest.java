@@ -133,11 +133,31 @@ public class SelectorTest {
     }
 
     @Test
-    public void testGetValueAfterDoubleScopeRestriction() throws IOException {
+    public void testGetValueAfterDoubleScopeRestriction1() throws IOException {
         final ParseResult result = REP_FORMAT.parse(stream(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), enc());
         final int value = Selector.on(result.environment.order)
             .select(REP_FORMAT).get(0)
             .select(NAMED_ITEM).get(0)
+            .getInt("value");
+        assertThat(value, is(equalTo(4)));
+    }
+
+    @Test
+    public void testGetValueAfterDoubleScopeRestriction2() throws IOException {
+        final ParseResult result = REP_FORMAT.parse(stream(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), enc());
+        final int value = Selector.on(result.environment.order)
+            .first(REP_FORMAT)
+            .first(NAMED_ITEM)
+            .getInt("value");
+        assertThat(value, is(equalTo(4)));
+    }
+
+    @Test
+    public void testGetValueAfterDoubleScopeRestriction3() throws IOException {
+        final ParseResult result = REP_FORMAT.parse(stream(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), enc());
+        final int value = Selector.on(result.environment.order)
+            .select(REP_FORMAT).first()
+            .select(NAMED_ITEM).first()
             .getInt("value");
         assertThat(value, is(equalTo(4)));
     }

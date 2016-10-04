@@ -49,7 +49,7 @@ public final class Selector {
      * @param definition the definition of the items to select
      * @return a list of {@link Selector}s, each encapsulating a matching item
      */
-    public List<Selector> select(final Token definition) {
+    public SelectorList select(final Token definition) {
         if (definition instanceof Def) {
             throw new IllegalArgumentException("Cannot select on Def, instead get by name.");
         }
@@ -60,6 +60,17 @@ public final class Selector {
             selectors.add(Selector.on(item.asGraph()));
         }
         return new SelectorList(definition, selectors);
+    }
+
+
+    /** See {@link Selector#select(Token)}, returning the selector at given index. */
+    public Selector nth(final int index, final Token definition) {
+        return select(definition).get(index);
+    }
+
+    /** See {@link Selector#select(Token)}, returning the first selector. */
+    public Selector first(final Token definition) {
+        return nth(0, definition);
     }
 
     /** See {@link Util#contains(ParseGraph, String)}. */
@@ -171,7 +182,7 @@ public final class Selector {
         return "Selector[" + _graph.toString() + "]";
     }
 
-    private static class SelectorList extends AbstractList<Selector> {
+    public static final class SelectorList extends AbstractList<Selector> {
 
         private final Token _definition;
         private final List<Selector> _selectors;
@@ -179,6 +190,10 @@ public final class Selector {
         private SelectorList(final Token definition, final List<Selector> selectors) {
             _definition = definition;
             _selectors = selectors;
+        }
+
+        public Selector first() {
+            return get(0);
         }
 
         @Override
