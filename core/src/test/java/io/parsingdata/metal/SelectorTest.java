@@ -22,9 +22,8 @@ import org.junit.rules.ExpectedException;
 
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.ParseItem;
-import io.parsingdata.metal.data.ParseItemList;
 import io.parsingdata.metal.data.ParseResult;
-import io.parsingdata.metal.data.ParseValueList;
+import io.parsingdata.metal.data.ParseValue;
 import io.parsingdata.metal.token.Token;
 
 public class SelectorTest {
@@ -36,20 +35,18 @@ public class SelectorTest {
 
     private static final Token OTHER = def("other", 1);
 
-    private static final Token ITEM =
-        seq(
-            VALUE,
-            VALUE);
+    private static final Token ITEM = seq(
+                                          VALUE,
+                                          VALUE);
 
     private static final Token NAMED_ITEM = str("item", ITEM);
 
     // FORMAT is 6 bytes long
-    private static final Token FORMAT =
-        seq(
-            VALUE,
-            OTHER,
-            ITEM,
-            NAMED_ITEM);
+    private static final Token FORMAT = seq(
+                                            VALUE,
+                                            OTHER,
+                                            ITEM,
+                                            NAMED_ITEM);
 
     private static final Token REP_FORMAT = rep(FORMAT);
 
@@ -105,18 +102,19 @@ public class SelectorTest {
     @Test
     public void testGetValues() throws IOException {
         final ParseResult result = FORMAT.parse(stream(0, 1, 2, 3, 4, 5), enc());
-        final ParseValueList values = Selector.on(result.environment.order).getAllValues("value");
-        assertThat(values.size, is(equalTo(5L)));
-        assertThat(values.head.offset, is(equalTo(0L)));
-        assertThat(values.head.asNumeric().intValue(), is(equalTo(0)));
+        final List<ParseValue> values = Selector.on(result.environment.order).getAllValues("value");
+        assertThat(values.size(), is(equalTo(5)));
+        final ParseValue firstValue = values.get(0);
+        assertThat(firstValue.offset, is(equalTo(0L)));
+        assertThat(firstValue.asNumeric().intValue(), is(equalTo(0)));
     }
 
     @Test
     public void testGetNamedItems() throws IOException {
         final ParseResult result = REP_FORMAT.parse(stream(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), enc());
-        final ParseItemList items = Selector.on(result.environment.order).getAllItems(NAMED_ITEM);
-        assertThat(items.size, is(equalTo(2L)));
-        assertThatAllHaveDefinition(items, NAMED_ITEM);
+        final List<ParseItem> items = Selector.on(result.environment.order).getAllItems(NAMED_ITEM);
+        assertThat(items.size(), is(equalTo(2)));
+        assertThatItemsHaveDefinition(items, NAMED_ITEM);
     }
 
     @Test
@@ -124,7 +122,7 @@ public class SelectorTest {
         final ParseResult result = REP_FORMAT.parse(stream(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), enc());
         final List<Selector> selectors = Selector.on(result.environment.order).select(NAMED_ITEM);
         assertThat(selectors.size(), is(equalTo(2)));
-        assertThatAllHaveDefinition(selectors, NAMED_ITEM);
+        assertThatSelectorsHaveDefinition(selectors, NAMED_ITEM);
     }
 
     @Test
@@ -144,15 +142,13 @@ public class SelectorTest {
         assertThat(value, is(equalTo(4)));
     }
 
-    private void assertThatAllHaveDefinition(final ParseItemList items, final Token definition) {
-        ParseItemList list = items;
-        while (!list.isEmpty()) {
-            assertThatHasDefinition(list.head, definition);
-            list = list.tail;
+    private void assertThatItemsHaveDefinition(final List<ParseItem> items, final Token definition) {
+        for (final ParseItem item : items) {
+            assertThatHasDefinition(item, definition);
         }
     }
 
-    private void assertThatAllHaveDefinition(final List<Selector> selectors, final Token definition) {
+    private void assertThatSelectorsHaveDefinition(final List<Selector> selectors, final Token definition) {
         for (final Selector selector : selectors) {
             assertThatHasDefinition(selector.getGraph(), definition);
         }

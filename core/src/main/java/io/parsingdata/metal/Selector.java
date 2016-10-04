@@ -55,13 +55,19 @@ public final class Selector {
         }
 
         final List<Selector> selectors = new ArrayList<>();
-        ParseItemList allItems = getAllItems(definition);
-        while (!allItems.isEmpty()) {
-            selectors.add(Selector.on(allItems.head.asGraph()));
-            allItems = allItems.tail;
+        final List<ParseItem> allItems = getAllItems(definition);
+        for (final ParseItem item : allItems) {
+            selectors.add(Selector.on(item.asGraph()));
         }
         return new SelectorList(definition, selectors);
     }
+
+    /** See {@link Util#contains(ParseGraph, String)}. */
+    public boolean contains(final String name) {
+        return Util.contains(_graph, name);
+    }
+
+    // TODO do we want to expose ParseGraph?
 
     /** Returns the original {@link ParseGraph} which this Selector was created on. */
     public ParseGraph getGraph() {
@@ -69,7 +75,7 @@ public final class Selector {
     }
 
     /**
-     * See {@link MetalUtil#getBytes(ParseGraph, String)}, using the graph contained in this selector.
+     * See {@link Util#getBytes(ParseGraph, String)}, using the graph contained in this selector.
      * If multiple values are present, the earliest parsed value with given name will be returned,
      * which is the other way around compared to the linked method (and the way Metal does it).
      * */
@@ -78,7 +84,7 @@ public final class Selector {
     }
 
     /**
-     * See {@link MetalUtil#getByte(ParseGraph, String)}, using the graph contained in this selector.
+     * See {@link Util#getByte(ParseGraph, String)}, using the graph contained in this selector.
      * If multiple values are present, the earliest parsed value with given name will be returned,
      * which is the other way around compared to the linked method (and the way Metal does it).
      * */
@@ -87,7 +93,7 @@ public final class Selector {
     }
 
     /**
-     * See {@link MetalUtil#getInt(ParseGraph, String)}, using the graph contained in this selector.
+     * See {@link Util#getInt(ParseGraph, String)}, using the graph contained in this selector.
      * If multiple values are present, the earliest parsed value with given name will be returned,
      * which is the other way around compared to the linked method (and the way Metal does it).
      * */
@@ -96,7 +102,7 @@ public final class Selector {
     }
 
     /**
-     * See {@link MetalUtil#getLong(ParseGraph, String)}, using the graph contained in this selector.
+     * See {@link Util#getLong(ParseGraph, String)}, using the graph contained in this selector.
      * If multiple values are present, the earliest parsed value with given name will be returned,
      * which is the other way around compared to the linked method (and the way Metal does it).
      * */
@@ -105,7 +111,7 @@ public final class Selector {
     }
 
     /**
-     * See {@link MetalUtil#getBigInt(ParseGraph, String)}, using the graph contained in this selector.
+     * See {@link Util#getBigInt(ParseGraph, String)}, using the graph contained in this selector.
      * If multiple values are present, the earliest parsed value with given name will be returned,
      * which is the other way around compared to the linked method (and the way Metal does it).
      * */
@@ -114,7 +120,7 @@ public final class Selector {
     }
 
     /**
-     * See {@link MetalUtil#getString(ParseGraph, String)}, using the graph contained in this selector.
+     * See {@link Util#getString(ParseGraph, String)}, using the graph contained in this selector.
      * If multiple values are present, the earliest parsed value with given name will be returned,
      * which is the other way around compared to the linked method (and the way Metal does it).
      * */
@@ -122,40 +128,42 @@ public final class Selector {
         return Util.getString(_graph.reverse(), name);
     }
 
+    // TODO which of the following do we really need? (do we want to expose ParseValue/Item?)
+
     /**
-     * See {@link MetalUtil#getValue(ParseGraph, String)}, using the graph contained in this selector.
+     * See {@link ByName#getValue(ParseGraph, String)}, using the graph contained in this selector.
      * If multiple values are present, the earliest parsed value with given name will be returned,
      * which is the other way around compared to the linked method (and the way Metal does it).
      * */
     public ParseValue getValue(final String name) {
-        return getAllValues(name).head;
+        return getAllValues(name).get(0);
     }
 
     /**
-     * See {@link MetalUtil#getAllValues(ParseGraph, String)}, using the graph contained in this selector.
+     * See {@link ByName#getAllValues(ParseGraph, String)}, using the graph contained in this selector.
      * The order of the list is in reverse order compared to the list returned by the linked method
      * (and the way Metal does it), i.e. items parsed earlier are at the front of the list.
      * */
-    public ParseValueList getAllValues(final String name) {
-        return Util.reverse(ByName.getAllValues(_graph, name));
+    public List<ParseValue> getAllValues(final String name) {
+        return Util.toList(Util.reverse(ByName.getAllValues(_graph, name)));
     }
 
     /**
-     * See {@link MetalUtil#getItem(ParseGraph, String)}, using the graph contained in this selector.
+     * See {@link ByToken#get(ParseGraph, String)}, using the graph contained in this selector.
      * If multiple values are present, the earliest parsed value with given name will be returned,
      * which is the other way around compared to the linked method (and the way Metal does it).
      * */
     public ParseItem getItem(final Token definition) {
-        return getAllItems(definition).head;
+        return getAllItems(definition).get(0);
     }
 
     /**
-     * See {@link MetalUtil#getAllItems(ParseGraph, String)}, using the graph contained in this selector.
+     * See {@link ByToken#getAll(ParseGraph, String)}, using the graph contained in this selector.
      * The order of the list is in reverse order compared to the list returned by the linked method
      * (and the way Metal does it), i.e. items parsed earlier are at the front of the list.
      * */
-    public ParseItemList getAllItems(final Token definition) {
-        return Util.reverse(ByToken.getAll(_graph, definition));
+    public List<ParseItem> getAllItems(final Token definition) {
+        return Util.toList(Util.reverse(ByToken.getAll(_graph, definition)));
     }
 
     @Override
