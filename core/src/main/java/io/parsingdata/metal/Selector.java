@@ -36,7 +36,7 @@ public final class Selector {
         checkNotNull(graph, "graph");
         return new Selector(graph);
     }
-
+    
     public static Selector on(final Selector selector) {
         checkNotNull(selector, "selector");
         return on(selector._graph);
@@ -49,7 +49,7 @@ public final class Selector {
      * @param definition the definition of the items to select
      * @return a list of {@link Selector}s, each encapsulating a matching item
      */
-    public SelectorList select(final Token definition) {
+    public List<Selector> select(final Token definition) {
         if (definition instanceof Def) {
             throw new IllegalArgumentException("Cannot select on Def, instead get by name.");
         }
@@ -61,18 +61,55 @@ public final class Selector {
         }
         return new SelectorList(definition, selectors);
     }
-
-
-    /** See {@link Selector#select(Token)}, returning the selector at given index. */
-    public Selector nth(final int index, final Token definition) {
-        return select(definition).get(index);
+    
+    /**
+     * Returns the first item with a certain definition in the structure. It throws
+     * an exception when the structure has no item.
+     * <p>
+     * It uses {@link #select(Token)} internally, so it is dependent in the behavior of this method.
+     *
+     * @param definition the definition of the item to search for and return
+     * @return the first existing item with the given definition
+     */
+    public Selector selectFirst(final Token definition) {
+        final List<Selector> select = select(definition);
+        if (select.isEmpty()) {
+            throw new InvalidOperationException("structure contains no item with definition" + definition);
+        }
+        return select.get(0);
     }
 
-    /** See {@link Selector#select(Token)}, returning the first selector. */
-    public Selector first(final Token definition) {
-        return nth(0, definition);
+    /**
+     * Returns the only item with a certain definition in the structure. It throws
+     * an exception when the structure has no item or more than one item with this definition.
+     * <p>
+     * It uses {@link #select(Token)} internally, so it is dependent in the behavior of this method.
+     *
+     * @param definition the definition of the item to search for and return
+     * @return the single existing item with the given definition
+     */
+    public Selector selectSingle(final Token definition) {
+        final List<Selector> select = select(definition);
+        if (select.isEmpty()) {
+            throw new InvalidOperationException("structure contains no item with definition" + definition);
+        }
+        if(select.size() > 1) {
+            throw new InvalidOperationException("structure contains more than 1 item with definition" + definition);
+        }
+        return select.get(0);
     }
 
+    /**
+     * Check if the structure contains an item of a certain definition.
+     *
+     * @param definition the definition to search for
+     * @return true if the structure contains an item of given definition,
+     *         false otherwise
+     */
+    public boolean contains(final Token definition) {
+        return !select(definition).isEmpty();
+    }
+    
     /** See {@link Util#contains(ParseGraph, String)}. */
     public boolean contains(final String name) {
         return Util.contains(_graph, name);
@@ -182,7 +219,7 @@ public final class Selector {
         return "Selector[" + _graph.toString() + "]";
     }
 
-    public static final class SelectorList extends AbstractList<Selector> {
+    private static final class SelectorList extends AbstractList<Selector> {
 
         private final Token _definition;
         private final List<Selector> _selectors;
@@ -191,11 +228,7 @@ public final class Selector {
             _definition = definition;
             _selectors = selectors;
         }
-
-        public Selector first() {
-            return get(0);
-        }
-
+        
         @Override
         public Selector get(final int index) {
             if (index >= size()) {
@@ -207,6 +240,15 @@ public final class Selector {
         @Override
         public int size() {
             return _selectors.size();
+        }
+    }
+    
+    static class InvalidOperationException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        public InvalidOperationException(final String message) {
+            super(message);
         }
     }
 

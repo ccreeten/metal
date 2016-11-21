@@ -10,6 +10,9 @@ import static io.parsingdata.metal.Shorthand.def;
 import static io.parsingdata.metal.Shorthand.rep;
 import static io.parsingdata.metal.Shorthand.seq;
 import static io.parsingdata.metal.Shorthand.str;
+
+import io.parsingdata.metal.Selector.InvalidOperationException;
+
 import static io.parsingdata.metal.util.EncodingFactory.enc;
 import static io.parsingdata.metal.util.EnvironmentFactory.stream;
 
@@ -91,6 +94,21 @@ public class SelectorTest {
         final int value = Selector.on(Selector.on(result.environment.order)).getInt("value");
         assertThat(value, is(equalTo(0)));
     }
+    
+    @Test
+    public void testSelectSingleOnEmptyGraph() throws IOException {
+        _thrown.expect(InvalidOperationException.class);
+        _thrown.expectMessage(containsString("structure contains no item with definition"));
+        Selector.on(ParseGraph.EMPTY).selectSingle(NAMED_ITEM);
+    }
+    
+    @Test
+    public void testSelectSingleWhenMorePresent() throws IOException {
+        _thrown.expect(InvalidOperationException.class);
+        _thrown.expectMessage(containsString("structure contains more than 1 item with definition"));
+        final ParseResult result = FORMAT.parse(stream(0, 1, 2, 3, 4, 5), enc());
+        Selector.on(result.environment.order).selectSingle(ITEM);
+    }
 
     @Test
     public void testGetFirstValue() throws IOException {
@@ -136,8 +154,8 @@ public class SelectorTest {
     public void testGetValueAfterDoubleScopeRestriction1() throws IOException {
         final ParseResult result = REP_FORMAT.parse(stream(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), enc());
         final int value = Selector.on(result.environment.order)
-            .select(REP_FORMAT).get(0)
-            .select(NAMED_ITEM).get(0)
+            .selectFirst(REP_FORMAT)
+            .selectSingle(NAMED_ITEM)
             .getInt("value");
         assertThat(value, is(equalTo(4)));
     }
@@ -146,8 +164,8 @@ public class SelectorTest {
     public void testGetValueAfterDoubleScopeRestriction2() throws IOException {
         final ParseResult result = REP_FORMAT.parse(stream(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), enc());
         final int value = Selector.on(result.environment.order)
-            .first(REP_FORMAT)
-            .first(NAMED_ITEM)
+            .select(REP_FORMAT).get(0)
+            .selectSingle(NAMED_ITEM)
             .getInt("value");
         assertThat(value, is(equalTo(4)));
     }
@@ -156,8 +174,8 @@ public class SelectorTest {
     public void testGetValueAfterDoubleScopeRestriction3() throws IOException {
         final ParseResult result = REP_FORMAT.parse(stream(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), enc());
         final int value = Selector.on(result.environment.order)
-            .select(REP_FORMAT).first()
-            .select(NAMED_ITEM).first()
+            .selectFirst(REP_FORMAT)
+            .selectSingle(NAMED_ITEM)
             .getInt("value");
         assertThat(value, is(equalTo(4)));
     }
