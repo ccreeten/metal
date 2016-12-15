@@ -1,30 +1,30 @@
 package io.parsingdata.metal.mst.token;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
-import io.parsingdata.metal.expression.Expression;
 import io.parsingdata.metal.mst.MSTNode;
 import io.parsingdata.metal.mst.visitor.Visitor;
 import io.parsingdata.metal.mst.visitor.VoidVisitor;
+import io.parsingdata.metal.token.Nod;
 
-public final class ExpressionNode implements MSTNode {
+public final class NoData extends TokenNode {
 
-    // TODO extrude expressions
+    private final ValueExpressionNode size;
 
-    private final Expression expression;
-
-    ExpressionNode(final Expression expression) {
-        this.expression = expression;
+    NoData(final Nod noData) {
+        // encoding is always null
+        super(noData.name, noData.encoding);
+        size = new ValueExpressionNode(noData.size);
     }
 
-    public Expression expression() {
-        return expression;
+    public ValueExpressionNode size() {
+        return size;
     }
 
     @Override
     public List<MSTNode> children() {
-        return Collections.emptyList();
+        return Arrays.asList(size);
     }
 
     @Override

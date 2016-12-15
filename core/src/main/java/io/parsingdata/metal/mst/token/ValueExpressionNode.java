@@ -12,7 +12,7 @@ public final class ValueExpressionNode implements MSTNode {
 
     private final ValueExpression valueExpression;
 
-    public ValueExpressionNode(final ValueExpression valueExpression) {
+    ValueExpressionNode(final ValueExpression valueExpression) {
         this.valueExpression = valueExpression;
     }
 

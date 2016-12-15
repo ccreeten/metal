@@ -1,27 +1,26 @@
 package io.parsingdata.metal.mst.token;
 
-
 import java.util.Arrays;
 import java.util.List;
 
 import io.parsingdata.metal.mst.MSTNode;
 import io.parsingdata.metal.mst.visitor.Visitor;
 import io.parsingdata.metal.mst.visitor.VoidVisitor;
-import io.parsingdata.metal.token.Def;
+import io.parsingdata.metal.token.Pre;
 
-public final class DefinitionNode extends TokenNode {
+public final class Predicate extends TokenNode {
 
-    private final ValueExpressionNode size;
+    private final MSTNode token;
     private final ExpressionNode predicate;
 
-    public DefinitionNode(final Def definition) {
-        super(definition.name, definition.encoding);
-        size = new ValueExpressionNode(definition.size);
-        predicate = new ExpressionNode(definition.predicate);
+    Predicate(final Pre predicate) {
+        super(predicate.name, predicate.encoding);
+        token = wrap(predicate.token);
+        this.predicate = new ExpressionNode(predicate.predicate);
     }
 
-    public ValueExpressionNode size() {
-        return size;
+    public MSTNode token() {
+        return token;
     }
 
     public ExpressionNode predicate() {
@@ -30,7 +29,7 @@ public final class DefinitionNode extends TokenNode {
 
     @Override
     public List<MSTNode> children() {
-        return Arrays.asList(size, predicate);
+        return Arrays.asList(token, predicate);
     }
 
     @Override

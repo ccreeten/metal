@@ -10,11 +10,11 @@ import io.parsingdata.metal.mst.visitor.VoidVisitor;
 import io.parsingdata.metal.token.Cho;
 import io.parsingdata.metal.token.Token;
 
-public final class ChoiceNode extends TokenNode {
+public final class Choice extends TokenNode {
 
     private final List<MSTNode> tokens = new ArrayList<>();
 
-    ChoiceNode(final Cho choice) {
+    Choice(final Cho choice) {
         super(choice.name, choice.encoding);
         for (final Token token : choice.tokens()) {
             tokens.add(wrap(token));

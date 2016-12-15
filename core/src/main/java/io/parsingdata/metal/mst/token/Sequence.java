@@ -10,11 +10,11 @@ import io.parsingdata.metal.mst.visitor.VoidVisitor;
 import io.parsingdata.metal.token.Seq;
 import io.parsingdata.metal.token.Token;
 
-public final class SequenceNode extends TokenNode {
+public final class Sequence extends TokenNode {
 
     private final List<MSTNode> tokens = new ArrayList<>();
 
-    SequenceNode(final Seq sequence) {
+    Sequence(final Seq sequence) {
         super(sequence.name, sequence.encoding);
         for (final Token token : sequence.tokens()) {
             tokens.add(wrap(token));

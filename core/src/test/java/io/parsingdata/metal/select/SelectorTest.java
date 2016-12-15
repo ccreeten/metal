@@ -23,7 +23,6 @@ import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.ParseItem;
 import io.parsingdata.metal.data.ParseResult;
 import io.parsingdata.metal.data.ParseValue;
-import io.parsingdata.metal.select.Selector.InvalidOperationException;
 import io.parsingdata.metal.token.Token;
 
 public class SelectorTest {
@@ -122,7 +121,7 @@ public class SelectorTest {
     @Test
     public void testGetNamedItems() throws IOException {
         final ParseResult result = REP_FORMAT.parse(stream(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), enc());
-        final List<ParseItem> items = Selector.on(result.environment.order).getAllRoots(NAMED_ITEM);
+        final List<ParseItem> items = Selector.on(result.environment.order).getAllItems(NAMED_ITEM);
         assertThat(items.size(), is(equalTo(2)));
         assertThatItemsHaveDefinition(items, NAMED_ITEM);
     }

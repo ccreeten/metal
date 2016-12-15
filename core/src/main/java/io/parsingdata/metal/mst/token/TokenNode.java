@@ -8,22 +8,38 @@ import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.mst.MSTNode;
 import io.parsingdata.metal.token.Cho;
 import io.parsingdata.metal.token.Def;
+import io.parsingdata.metal.token.Nod;
+import io.parsingdata.metal.token.Opt;
+import io.parsingdata.metal.token.Pre;
 import io.parsingdata.metal.token.Rep;
+import io.parsingdata.metal.token.RepN;
 import io.parsingdata.metal.token.Seq;
+import io.parsingdata.metal.token.Sub;
+import io.parsingdata.metal.token.Tie;
 import io.parsingdata.metal.token.Token;
+import io.parsingdata.metal.token.TokenRef;
+import io.parsingdata.metal.token.While;
 
 public abstract class TokenNode implements MSTNode {
 
-    private static final List<Wrapper<?>> _wrappers =
-        Arrays.asList(new Wrapper<>(Cho.class, ChoiceNode::new),
-                      new Wrapper<>(Rep.class, RepNode::new),
-                      new Wrapper<>(Seq.class, SequenceNode::new),
-                      new Wrapper<>(Def.class, DefinitionNode::new));
+    private static final List<Wrapper<?>> wrappers =
+        Arrays.asList(new Wrapper<>(Cho.class, Choice::new),
+                      new Wrapper<>(Def.class, Definition::new),
+                      new Wrapper<>(Nod.class, NoData::new),
+                      new Wrapper<>(Opt.class, OptionalToken::new),
+                      new Wrapper<>(Pre.class, Predicate::new),
+                      new Wrapper<>(Rep.class, Repetition::new),
+                      new Wrapper<>(RepN.class, BoundedRepetition::new),
+                      new Wrapper<>(Seq.class, Sequence::new),
+                      new Wrapper<>(Sub.class, SubStructure::new),
+                      new Wrapper<>(Tie.class, TokenInToken::new),
+                      new Wrapper<>(TokenRef.class, TokenReference::new),
+                      new Wrapper<>(While.class, DoWhile::new));
 
     private final String name;
     private final Encoding encoding;
 
-    TokenNode(final String name, final Encoding encoding) {
+    protected TokenNode(final String name, final Encoding encoding) {
         this.name = name;
         this.encoding = encoding;
     }
@@ -37,7 +53,7 @@ public abstract class TokenNode implements MSTNode {
     }
 
     public static MSTNode wrap(final Token token) {
-        for (final Wrapper<?> wrapper : _wrappers) {
+        for (final Wrapper<?> wrapper : wrappers) {
             if (wrapper.matches(token)) {
                 return wrapper.wrap(token);
             }

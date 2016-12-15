@@ -1,30 +1,29 @@
 package io.parsingdata.metal.mst.token;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
-import io.parsingdata.metal.expression.Expression;
 import io.parsingdata.metal.mst.MSTNode;
 import io.parsingdata.metal.mst.visitor.Visitor;
 import io.parsingdata.metal.mst.visitor.VoidVisitor;
+import io.parsingdata.metal.token.Rep;
 
-public final class ExpressionNode implements MSTNode {
+public final class Repetition extends TokenNode {
 
-    // TODO extrude expressions
+    private final MSTNode token;
 
-    private final Expression expression;
-
-    ExpressionNode(final Expression expression) {
-        this.expression = expression;
+    Repetition(final Rep repetition) {
+        super(repetition.name, repetition.encoding);
+        token = wrap(repetition.token);
     }
 
-    public Expression expression() {
-        return expression;
+    public MSTNode token() {
+        return token;
     }
 
     @Override
     public List<MSTNode> children() {
-        return Collections.emptyList();
+        return Arrays.asList(token);
     }
 
     @Override
