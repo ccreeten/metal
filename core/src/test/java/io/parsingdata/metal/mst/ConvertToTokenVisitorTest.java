@@ -25,8 +25,10 @@ import io.parsingdata.metal.data.ParseResult;
 import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.mst.token.Choice;
 import io.parsingdata.metal.mst.token.Definition;
+import io.parsingdata.metal.mst.token.ExpressionNode;
 import io.parsingdata.metal.mst.token.TokenNode;
 import io.parsingdata.metal.mst.visitor.ToTokenTransformer;
+import io.parsingdata.metal.mst.visitor.TreeTransformer;
 import io.parsingdata.metal.select.Selector;
 import io.parsingdata.metal.token.Token;
 
@@ -98,11 +100,40 @@ public class ConvertToTokenVisitorTest {
         assertTrue(newStruct.contains("c"));
     }
 
+    @Test
+    public void removeConstraintsTestTwoStep() throws IOException {
+        final Environment environment = stream(0, 1, 2);
+        final Encoding encoding = enc();
+
+        final Token originalToken = seq(opt(def("a", 1, eqNum(con(2)))), seq(opt(def("b", 1, eqNum(con(1)))), opt(def("c", 1, eqNum(con(0))))));
+        final ParseResult orginalResult = originalToken.parse(environment, encoding);
+        final Selector originalStruct = Selector.on(orginalResult.environment.order);
+        assertFalse(originalStruct.contains("a"));
+        assertFalse(originalStruct.contains("b"));
+        assertTrue(originalStruct.contains("c"));
+
+        final Token newToken = TokenNode.wrap(originalToken).accept(new ExpressionToTrueConverter()).accept(new ToTokenTransformer());
+        final ParseResult newResult = newToken.parse(environment, encoding);
+        final Selector newStruct = Selector.on(newResult.environment.order);
+        assertTrue(newStruct.contains("a"));
+        assertTrue(newStruct.contains("b"));
+        assertTrue(newStruct.contains("c"));
+    }
+
     private static class SeqToChoTransformer extends ToTokenTransformer {
 
         @Override
         public Token visit(final Choice node) {
             return seq(node.children().stream().map(n -> n.accept(this)).toArray(Token[]::new));
+        }
+    }
+
+    private static class ExpressionToTrueConverter extends TreeTransformer {
+
+        @Override
+        public MSTNode visit(final ExpressionNode node) {
+            //TODO how to update the tree? mutable nodes? (feels like it shouldn't be)
+            return null;
         }
     }
 

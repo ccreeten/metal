@@ -16,65 +16,93 @@ import io.parsingdata.metal.mst.token.TokenInToken;
 import io.parsingdata.metal.mst.token.TokenReference;
 import io.parsingdata.metal.mst.token.ValueExpressionNode;
 
-public interface VoidVisitor {
+public class TreeTransformer implements Visitor<MSTNode> {
 
-    default void visit(final BoundedRepetition node) {
+    @Override
+    public MSTNode visit(final BoundedRepetition node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final Choice node) {
+    @Override
+    public MSTNode visit(final Choice node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final Definition node) {
+    @Override
+    public MSTNode visit(final Definition node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final DoWhile node) {
+    @Override
+    public MSTNode visit(final DoWhile node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final ExpressionNode node) {
+    @Override
+    public MSTNode visit(final ExpressionNode node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final NoData node) {
+    @Override
+    public MSTNode visit(final NoData node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final OptionalToken node) {
+    @Override
+    public MSTNode visit(final OptionalToken node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final Predicate node) {
+    @Override
+    public MSTNode visit(final Predicate node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final Repetition node) {
+    @Override
+    public MSTNode visit(final Repetition node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final Sequence node) {
+    @Override
+    public MSTNode visit(final Sequence node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final SubStructure node) {
+    @Override
+    public MSTNode visit(final SubStructure node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final TokenInToken node) {
+    @Override
+    public MSTNode visit(final TokenInToken node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final TokenReference node) {
+    @Override
+    public MSTNode visit(final TokenReference node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visit(final ValueExpressionNode node) {
+    @Override
+    public MSTNode visit(final ValueExpressionNode node) {
         visitChildren(node);
+        return node;
     }
 
-    default void visitChildren(final MSTNode node) {
+    protected void visitChildren(final MSTNode node) {
         for (final MSTNode child : node.children()) {
             child.accept(this);
         }

@@ -3,6 +3,7 @@ package io.parsingdata.metal.mst.token;
 import java.util.Arrays;
 import java.util.List;
 
+import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.mst.MSTNode;
 import io.parsingdata.metal.mst.visitor.Visitor;
 import io.parsingdata.metal.mst.visitor.VoidVisitor;
@@ -16,10 +17,16 @@ public final class DoWhile extends TokenNode {
     private final MSTNode token;
     private final ExpressionNode predicate;
 
-    DoWhile(final While doWhile) {
+    public DoWhile(final While doWhile) {
         super(doWhile.name, doWhile.encoding);
         token = wrap(doWhile.token);
         predicate = new ExpressionNode(doWhile.predicate);
+    }
+
+    public DoWhile(final String name, final Encoding encoding, final MSTNode token, final ExpressionNode predicate) {
+        super(name, encoding);
+        this.token = token;
+        this.predicate = predicate;
     }
 
     public MSTNode token() {

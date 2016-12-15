@@ -3,6 +3,7 @@ package io.parsingdata.metal.mst.token;
 import java.util.Arrays;
 import java.util.List;
 
+import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.mst.MSTNode;
 import io.parsingdata.metal.mst.visitor.Visitor;
 import io.parsingdata.metal.mst.visitor.VoidVisitor;
@@ -12,10 +13,15 @@ public final class NoData extends TokenNode {
 
     private final ValueExpressionNode size;
 
-    NoData(final Nod noData) {
+    public NoData(final Nod noData) {
         // encoding is always null
         super(noData.name, noData.encoding);
         size = new ValueExpressionNode(noData.size);
+    }
+
+    public NoData(final String name, final Encoding encoding, final ValueExpressionNode size) {
+        super(name, encoding);
+        this.size = size;
     }
 
     public ValueExpressionNode size() {

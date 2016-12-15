@@ -14,7 +14,7 @@ public final class ExpressionNode implements MSTNode {
 
     private final Expression expression;
 
-    ExpressionNode(final Expression expression) {
+    public ExpressionNode(final Expression expression) {
         this.expression = expression;
     }
 

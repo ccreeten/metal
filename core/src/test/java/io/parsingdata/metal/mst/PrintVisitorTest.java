@@ -8,7 +8,9 @@ import static io.parsingdata.metal.Shorthand.rep;
 import static io.parsingdata.metal.Shorthand.seq;
 
 import io.parsingdata.metal.mst.token.TokenNode;
+import io.parsingdata.metal.mst.token.ValueExpressionNode;
 import io.parsingdata.metal.mst.visitor.MSTPrinter;
+import io.parsingdata.metal.mst.visitor.VoidVisitor;
 import io.parsingdata.metal.token.Token;
 
 public class PrintVisitorTest {
@@ -35,5 +37,20 @@ public class PrintVisitorTest {
         final MSTNode mst = TokenNode.wrap(token);
         mst.accept(new MSTPrinter());
         System.out.println();
+    }
+
+    @Test
+    public void printValues() {
+        final Token token = rep(seq(def("a", 1), def("b", 1)));
+        final MSTNode mst = TokenNode.wrap(token);
+        mst.accept(new ValuePrinter());
+    }
+
+    private static class ValuePrinter implements VoidVisitor {
+
+        @Override
+        public void visit(final ValueExpressionNode node) {
+            System.out.println(node.valueExpression());
+        }
     }
 }

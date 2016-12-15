@@ -1,9 +1,11 @@
 package io.parsingdata.metal.mst.token;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.mst.MSTNode;
 import io.parsingdata.metal.mst.visitor.Visitor;
 import io.parsingdata.metal.mst.visitor.VoidVisitor;
@@ -14,11 +16,16 @@ public final class Sequence extends TokenNode {
 
     private final List<MSTNode> tokens = new ArrayList<>();
 
-    Sequence(final Seq sequence) {
+    public Sequence(final Seq sequence) {
         super(sequence.name, sequence.encoding);
         for (final Token token : sequence.tokens()) {
             tokens.add(wrap(token));
         }
+    }
+
+    public Sequence(final String name, final Encoding encoding, final MSTNode... children) {
+        super(name, encoding);
+        tokens.addAll(Arrays.asList(children));
     }
 
     @Override
