@@ -1,0 +1,453 @@
+package io.parsingdata.metal.select;
+
+import static io.parsingdata.metal.Util.checkNotNull;
+
+import java.math.BigInteger;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.List;
+
+import io.parsingdata.metal.data.ImmutableList;
+import io.parsingdata.metal.data.ParseGraph;
+import io.parsingdata.metal.data.ParseItem;
+import io.parsingdata.metal.data.ParseValue;
+import io.parsingdata.metal.data.selection.ByName;
+import io.parsingdata.metal.data.selection.ByToken;
+import io.parsingdata.metal.data.transformation.Reversal;
+import io.parsingdata.metal.token.Def;
+import io.parsingdata.metal.token.Token;
+
+public final class Selector {
+
+    private final ParseGraph graph;
+
+    private Selector(final ParseGraph graph) {
+        this.graph = graph;
+    }
+
+    /**
+     * Create a new selector for a graph.
+     *
+     * @param graph the graph to execute the selections on
+     * @return a new selector encapsulating the given graph
+     * @throws IllegalArgumentException if graph == null
+     */
+    public static Selector on(final ParseGraph graph) {
+        checkNotNull(graph, "graph");
+        return new Selector(graph);
+    }
+
+    public static Selector on(final Selector selector) {
+        checkNotNull(selector, "selector");
+        return on(selector.graph);
+    }
+
+    /**
+     * Select all items from the graph contained in this selector,
+     * matching given definition.
+     *
+     * @param definition the definition of the items to select
+     * @return a list of {@link Selector}s, each encapsulating a matching item
+     */
+    public List<Selector> select(final Token definition) {
+        if (definition instanceof Def) {
+            throw new IllegalArgumentException("Cannot select on Def, instead get by name.");
+        }
+
+        final List<Selector> selectors = new ArrayList<>();
+        final List<ParseItem> allItems = getAllRoots(definition);
+        for (final ParseItem item : allItems) {
+            selectors.add(Selector.on(item.asGraph()));
+        }
+        return new SelectorList(definition, selectors);
+    }
+
+    /**
+     * Returns the first item with a certain definition in the structure. It throws
+     * an exception when the structure has no item.
+     * <p>
+     * It uses {@link #select(Token)} internally, so it is dependent in the behavior of this method.
+     *
+     * @param definition the definition of the item to search for and return
+     * @return the first existing item with the given definition
+     */
+    public Selector selectFirst(final Token definition) {
+        final List<Selector> select = select(definition);
+        if (select.isEmpty()) {
+            throw new InvalidOperationException("structure contains no item with definition" + definition);
+        }
+        return select.get(0);
+    }
+
+    /**
+     * Returns the only item with a certain definition in the structure. It throws
+     * an exception when the structure has no item or more than one item with this definition.
+     * <p>
+     * It uses {@link #select(Token)} internally, so it is dependent in the behavior of this method.
+     *
+     * @param definition the definition of the item to search for and return
+     * @return the single existing item with the given definition
+     */
+    public Selector selectSingle(final Token definition) {
+        final List<Selector> select = select(definition);
+        if (select.isEmpty()) {
+            throw new InvalidOperationException("structure contains no item with definition" + definition);
+        }
+        if(select.size() > 1) {
+            throw new InvalidOperationException("structure contains more than 1 item with definition" + definition);
+        }
+        return select.get(0);
+    }
+
+    /**
+     * Check if the structure contains an item of a certain definition.
+     *
+     * @param definition the definition to search for
+     * @return true if the structure contains an item of given definition,
+     *         false otherwise
+     */
+    public boolean contains(final Token definition) {
+        return !select(definition).isEmpty();
+    }
+
+    /** See {@link Util#contains(ParseGraph, String)}. */
+    public boolean contains(final String name) {
+        return Util.contains(graph, name);
+    }
+
+    // TODO do we want to expose ParseGraph?
+
+    /** Returns the original {@link ParseGraph} which this Selector was created on. */
+    public ParseGraph getGraph() {
+        return graph;
+    }
+
+    /**
+     * See {@link Util#getBytes(ParseGraph, String)}, using the graph contained in this selector.
+     * If multiple values are present, the earliest parsed value with given name will be returned,
+     * which is the other way around compared to the linked method (and the way Metal does it).
+     * */
+    public byte[] getBytes(final String name) {
+        return Util.getBytes(Util.reverse(graph), name);
+    }
+
+    /**
+     * See {@link Util#getByte(ParseGraph, String)}, using the graph contained in this selector.
+     * If multiple values are present, the earliest parsed value with given name will be returned,
+     * which is the other way around compared to the linked method (and the way Metal does it).
+     * */
+    public byte getByte(final String name) {
+        return Util.getByte(Util.reverse(graph), name);
+    }
+
+    /**
+     * See {@link Util#getInt(ParseGraph, String)}, using the graph contained in this selector.
+     * If multiple values are present, the earliest parsed value with given name will be returned,
+     * which is the other way around compared to the linked method (and the way Metal does it).
+     * */
+    public int getInt(final String name) {
+        return Util.getInt(Util.reverse(graph), name);
+    }
+
+    /**
+     * See {@link Util#getLong(ParseGraph, String)}, using the graph contained in this selector.
+     * If multiple values are present, the earliest parsed value with given name will be returned,
+     * which is the other way around compared to the linked method (and the way Metal does it).
+     * */
+    public long getLong(final String name) {
+        return Util.getLong(Util.reverse(graph), name);
+    }
+
+    /**
+     * See {@link Util#getBigInt(ParseGraph, String)}, using the graph contained in this selector.
+     * If multiple values are present, the earliest parsed value with given name will be returned,
+     * which is the other way around compared to the linked method (and the way Metal does it).
+     * */
+    public BigInteger getBigInt(final String name) {
+        return Util.getBigInt(Util.reverse(graph), name);
+    }
+
+    /**
+     * See {@link Util#getString(ParseGraph, String)}, using the graph contained in this selector.
+     * If multiple values are present, the earliest parsed value with given name will be returned,
+     * which is the other way around compared to the linked method (and the way Metal does it).
+     * */
+    public String getString(final String name) {
+        return Util.getString(Util.reverse(graph), name);
+    }
+
+    // TODO which of the following do we really need? (do we want to expose ParseValue/Item?)
+
+    /**
+     * See {@link ByName#getValue(ParseGraph, String)}, using the graph contained in this selector.
+     * If multiple values are present, the earliest parsed value with given name will be returned,
+     * which is the other way around compared to the linked method (and the way Metal does it).
+     * */
+    public ParseValue getValue(final String name) {
+        return getAllValues(name).get(0);
+    }
+
+    /**
+     * See {@link ByName#getAllValues(ParseGraph, String)}, using the graph contained in this selector.
+     * The order of the list is in reverse order compared to the list returned by the linked method
+     * (and the way Metal does it), i.e. items parsed earlier are at the front of the list.
+     * */
+    public List<ParseValue> getAllValues(final String name) {
+        return Util.toListOfValues(Util.reverseValueList(ByName.getAllValues(graph, name)));
+    }
+
+    /**
+     * See {@link ByToken#get(ParseGraph, String)}, using the graph contained in this selector.
+     * If multiple values are present, the earliest parsed value with given name will be returned,
+     * which is the other way around compared to the linked method (and the way Metal does it).
+     * */
+    public ParseItem getItem(final Token definition) {
+        return getAllItems(definition).get(0);
+    }
+
+    /**
+     * See {@link ByToken#getAll(ParseGraph, String)}, using the graph contained in this selector.
+     * The order of the list is in reverse order compared to the list returned by the linked method
+     * (and the way Metal does it), i.e. items parsed earlier are at the front of the list.
+     * */
+    public List<ParseItem> getAllItems(final Token definition) {
+        return Util.toListOfItems(Util.reverseItemList(ByToken.getAll(graph, definition)));
+    }
+
+    public List<ParseItem> getAllRoots(final Token definition) {
+        return Util.toListOfItems(Util.reverseItemList(ByToken.getAllRoots(graph, definition)));
+    }
+
+    @Override
+    public String toString() {
+        return "Selector[" + graph.toString() + "]";
+    }
+
+    private static final class SelectorList extends AbstractList<Selector> {
+
+        private final Token _definition;
+        private final List<Selector> _selectors;
+
+        private SelectorList(final Token definition, final List<Selector> selectors) {
+            _definition = definition;
+            _selectors = selectors;
+        }
+
+        @Override
+        public Selector get(final int index) {
+            if (index >= size()) {
+                throw new IndexOutOfBoundsException("[Index: " + index + ", Size: " + size() + "] for definition: " + _definition);
+            }
+            return _selectors.get(index);
+        }
+
+        @Override
+        public int size() {
+            return _selectors.size();
+        }
+    }
+
+    static class InvalidOperationException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        public InvalidOperationException(final String message) {
+            super(message);
+        }
+    }
+
+    private static final class Util {
+
+        private Util() {
+        }
+
+        /**
+         * Check if a certain value exists in a graph.
+         *
+         * @param graph the graph in which to search for the value
+         * @param name the name of the value to search for
+         * @return true if the value exists in the graph, otherwise false
+         */
+        public static boolean contains(final ParseGraph graph, final String name) {
+            return get(graph, name) != null;
+        }
+
+        /**
+         * Return the value with given name in the graph as a byte.
+         *
+         * @param graph the graph to search in
+         * @param name the name of the value to search for
+         * @return the value with given name in the graph as a byte
+         * @throws IllegalArgumentException when no value exists with given name
+         */
+        public static byte getByte(final ParseGraph graph, final String name) {
+            final ParseValue value = get(graph, name);
+            if (value == null) {
+                throw new IllegalArgumentException("Value doesn't exist: " + name);
+            }
+            return value.asNumeric().byteValue();
+        }
+
+        /**
+         * Return the value with given name in the graph as a byte array.
+         *
+         * @param graph the graph to search in
+         * @param name the name of the value to search for
+         * @return the value with given name in the graph as a byte array
+         * @throws IllegalArgumentException when no value exists with given name
+         */
+        public static byte[] getBytes(final ParseGraph graph, final String name) {
+            final ParseValue value = get(graph, name);
+            if (value == null) {
+                throw new IllegalArgumentException("Value doesn't exist: " + name);
+            }
+            return value.getValue();
+        }
+
+        /**
+         * Return the value with given name in the graph as an integer.
+         *
+         * @param graph the graph to search in
+         * @param name the name of the value to search for
+         * @return the value with given name in the graph as an integer
+         * @throws IllegalArgumentException when no value exists with given name
+         */
+        public static int getInt(final ParseGraph graph, final String name) {
+            final ParseValue value = get(graph, name);
+            if (value == null) {
+                throw new IllegalArgumentException("Value doesn't exist: " + name);
+            }
+            return value.asNumeric().intValue();
+        }
+
+        /**
+         * Return the value with given name in the graph as a long.
+         *
+         * @param graph the graph to search in
+         * @param name the name of the value to search for
+         * @return the value with given name in the graph as a long
+         * @throws IllegalArgumentException when no value exists with given name
+         */
+        public static long getLong(final ParseGraph graph, final String name) {
+            final ParseValue value = get(graph, name);
+            if (value == null) {
+                throw new IllegalArgumentException("Value doesn't exist: " + name);
+            }
+            return value.asNumeric().longValue();
+        }
+
+        /**
+         * Return the value with given name in the graph as a {@link BigInteger}.
+         *
+         * @param graph the graph to search in
+         * @param name the name of the value to search for
+         * @return the value with given name in the graph as a {@link BigInteger}
+         * @throws IllegalArgumentException when no value exists with given name
+         */
+        public static BigInteger getBigInt(final ParseGraph graph, final String name) {
+            final ParseValue value = get(graph, name);
+            if (value == null) {
+                throw new IllegalArgumentException("Value doesn't exist: " + name);
+            }
+            return value.asNumeric();
+        }
+
+        /**
+         * Return the value with given name in the graph as a {@link String}.
+         *
+         * @param graph the graph to search in
+         * @param name the name of the value to search for
+         * @return the value with given name in the graph as a {@link String}
+         * @throws IllegalArgumentException when no value exists with given name
+         */
+        public static String getString(final ParseGraph graph, final String name) {
+            final ParseValue value = get(graph, name);
+            if (value == null) {
+                throw new IllegalArgumentException("Value doesn't exist: " + name);
+            }
+            return value.asString();
+        }
+
+        /** See {@link ByName#getValue(ParseGraph, String)}. */
+        public static ParseValue get(final ParseGraph graph, final String name) {
+            return ByName.getValue(graph, name);
+        }
+
+        /** See {@link Reversal#reverse(ParseGraph)}. */
+        public static ParseGraph reverse(final ParseGraph graph) {
+            return Reversal.reverse(graph);
+        }
+
+        /**
+         * Reverse a {@link ImmutableList<ParseValue>}.
+         *
+         * @param list the list to reverse
+         * @return a new list of values in reverse order of the given one
+         */
+        public static ImmutableList<ParseValue> reverseValueList(final ImmutableList<ParseValue> list) {
+            if (list.isEmpty()) {
+                return new ImmutableList<>();
+            }
+            ImmutableList<ParseValue> oldList = list.tail;
+            ImmutableList<ParseValue> newList = ImmutableList.create(list.head);
+
+            while (!oldList.isEmpty()) {
+                newList = newList.add(oldList.head);
+                oldList = oldList.tail;
+            }
+            return newList;
+        }
+
+        /**
+         * Reverse a {@link ImmutableList<ParseItem>}.
+         *
+         * @param list the list to reverse
+         * @return a new list of values in reverse order of the given one
+         */
+        public static ImmutableList<ParseItem> reverseItemList(final ImmutableList<ParseItem> list) {
+            if (list.isEmpty()) {
+                return new ImmutableList<>();
+            }
+            ImmutableList<ParseItem> oldList = list.tail;
+            ImmutableList<ParseItem> newList = ImmutableList.create(list.head);
+
+            while (!oldList.isEmpty()) {
+                newList = newList.add(oldList.head);
+                oldList = oldList.tail;
+            }
+            return newList;
+        }
+
+        /**
+         * Convert a {@link ImmutableList<ParseValue>} to a {@link List}&lt{@link ParseValue}&gt.
+         *
+         * @param list the list to convert
+         * @return a new list containing the values from the given list
+         */
+        public static List<ParseValue> toListOfValues(final ImmutableList<ParseValue> list) {
+            final List<ParseValue> entryList = new ArrayList<>();
+            ImmutableList<ParseValue> l = list;
+            while (l.head != null) {
+                entryList.add(l.head);
+                l = l.tail;
+            }
+            return entryList;
+        }
+
+        /**
+         * Convert a {@link ImmutableList<ParseItem>} to a {@link List}&lt{@link ParseItem}&gt.
+         *
+         * @param list the list to convert
+         * @return a new list containing the values from the given list
+         */
+        public static List<ParseItem> toListOfItems(final ImmutableList<ParseItem> list) {
+            final List<ParseItem> entryList = new ArrayList<>();
+            ImmutableList<ParseItem> l = list;
+            while (l.head != null) {
+                entryList.add(l.head);
+                l = l.tail;
+            }
+            return entryList;
+        }
+    }
+}
