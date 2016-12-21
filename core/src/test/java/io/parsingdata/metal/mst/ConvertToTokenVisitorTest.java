@@ -1,5 +1,12 @@
 package io.parsingdata.metal.mst;
 
+import static io.parsingdata.metal.Shorthand.cho;
+import static io.parsingdata.metal.Shorthand.con;
+import static io.parsingdata.metal.Shorthand.def;
+import static io.parsingdata.metal.Shorthand.eqNum;
+import static io.parsingdata.metal.Shorthand.expTrue;
+import static io.parsingdata.metal.Shorthand.opt;
+import static io.parsingdata.metal.Shorthand.seq;
 import static io.parsingdata.metal.util.EncodingFactory.enc;
 import static io.parsingdata.metal.util.EnvironmentFactory.stream;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -12,20 +19,12 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import static io.parsingdata.metal.Shorthand.cho;
-import static io.parsingdata.metal.Shorthand.con;
-import static io.parsingdata.metal.Shorthand.def;
-import static io.parsingdata.metal.Shorthand.eqNum;
-import static io.parsingdata.metal.Shorthand.expTrue;
-import static io.parsingdata.metal.Shorthand.opt;
-import static io.parsingdata.metal.Shorthand.seq;
-
 import io.parsingdata.metal.data.Environment;
 import io.parsingdata.metal.data.ParseResult;
 import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.mst.token.Choice;
-import io.parsingdata.metal.mst.token.Definition;
 import io.parsingdata.metal.mst.token.ExpressionNode;
+import io.parsingdata.metal.mst.token.Sequence;
 import io.parsingdata.metal.mst.token.TokenNode;
 import io.parsingdata.metal.mst.visitor.ToTokenTransformer;
 import io.parsingdata.metal.mst.visitor.TreeTransformer;
@@ -53,7 +52,7 @@ public class ConvertToTokenVisitorTest {
         assertTrue(originalStruct.contains("a"));
         assertFalse(originalStruct.contains("b"));
 
-        final Token newToken = TokenNode.wrap(originalToken).accept(new SeqToChoTransformer());
+        final Token newToken = TokenNode.wrap(originalToken).accept(new SeqToChoConverter()).accept(new ToTokenTransformer());
         final ParseResult newResult = newToken.parse(environment, encoding);
         final Selector newStruct = Selector.on(newResult.environment.order);
         assertTrue(newStruct.contains("a"));
@@ -72,7 +71,7 @@ public class ConvertToTokenVisitorTest {
         assertFalse(originalStruct.contains("b"));
         assertFalse(originalStruct.contains("c"));
 
-        final Token newToken = TokenNode.wrap(originalToken).accept(new SeqToChoTransformer());
+        final Token newToken = TokenNode.wrap(originalToken).accept(new SeqToChoConverter()).accept(new ToTokenTransformer());
         final ParseResult newResult = newToken.parse(environment, encoding);
         final Selector newStruct = Selector.on(newResult.environment.order);
         assertTrue(newStruct.contains("a"));
@@ -92,26 +91,6 @@ public class ConvertToTokenVisitorTest {
         assertFalse(originalStruct.contains("b"));
         assertTrue(originalStruct.contains("c"));
 
-        final Token newToken = TokenNode.wrap(originalToken).accept(new ConstraintRemover());
-        final ParseResult newResult = newToken.parse(environment, encoding);
-        final Selector newStruct = Selector.on(newResult.environment.order);
-        assertTrue(newStruct.contains("a"));
-        assertTrue(newStruct.contains("b"));
-        assertTrue(newStruct.contains("c"));
-    }
-
-    @Test
-    public void removeConstraintsTestTwoStep() throws IOException {
-        final Environment environment = stream(0, 1, 2);
-        final Encoding encoding = enc();
-
-        final Token originalToken = seq(opt(def("a", 1, eqNum(con(2)))), seq(opt(def("b", 1, eqNum(con(1)))), opt(def("c", 1, eqNum(con(0))))));
-        final ParseResult orginalResult = originalToken.parse(environment, encoding);
-        final Selector originalStruct = Selector.on(orginalResult.environment.order);
-        assertFalse(originalStruct.contains("a"));
-        assertFalse(originalStruct.contains("b"));
-        assertTrue(originalStruct.contains("c"));
-
         final Token newToken = TokenNode.wrap(originalToken).accept(new ExpressionToTrueConverter()).accept(new ToTokenTransformer());
         final ParseResult newResult = newToken.parse(environment, encoding);
         final Selector newStruct = Selector.on(newResult.environment.order);
@@ -120,28 +99,24 @@ public class ConvertToTokenVisitorTest {
         assertTrue(newStruct.contains("c"));
     }
 
-    private static class SeqToChoTransformer extends ToTokenTransformer {
+    private static class SeqToChoConverter extends TreeTransformer {
 
         @Override
-        public Token visit(final Choice node) {
-            return seq(node.children().stream().map(n -> n.accept(this)).toArray(Token[]::new));
+        public TokenNode visit(final Choice node) {
+            final String name = node.name();
+            final Encoding encoding = node.encoding();
+            final TokenNode[] tokens = node.tokens().stream()
+                    .map(n -> (TokenNode) n.accept(this))
+                    .toArray(TokenNode[]::new);
+            return new Sequence(name, encoding, tokens);
         }
     }
 
     private static class ExpressionToTrueConverter extends TreeTransformer {
 
         @Override
-        public MSTNode visit(final ExpressionNode node) {
-            //TODO how to update the tree? mutable nodes? (feels like it shouldn't be)
-            return null;
-        }
-    }
-
-    private static class ConstraintRemover extends ToTokenTransformer {
-
-        @Override
-        public Token visit(final Definition node) {
-            return def(node.name(), node.size().valueExpression(), expTrue(), node.encoding());
+        public ExpressionNode visit(final ExpressionNode node) {
+            return new ExpressionNode(expTrue());
         }
     }
 }

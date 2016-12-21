@@ -11,19 +11,19 @@ import io.parsingdata.metal.token.Rep;
 
 public final class Repetition extends TokenNode {
 
-    private final MSTNode token;
+    private final TokenNode token;
 
     public Repetition(final Rep repetition) {
         super(repetition.name, repetition.encoding);
         token = wrap(repetition.token);
     }
 
-    public Repetition(final String name, final Encoding encoding, final MSTNode token) {
+    public Repetition(final String name, final Encoding encoding, final TokenNode token) {
         super(name, encoding);
         this.token = token;
     }
 
-    public MSTNode token() {
+    public TokenNode token() {
         return token;
     }
 

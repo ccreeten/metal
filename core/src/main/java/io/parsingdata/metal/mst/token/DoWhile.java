@@ -14,7 +14,7 @@ public final class DoWhile extends TokenNode {
     // TODO should these all be defined as MSTNodes? Or as the most specific type?
     // this counts for all Node classes
 
-    private final MSTNode token;
+    private final TokenNode token;
     private final ExpressionNode predicate;
 
     public DoWhile(final While doWhile) {
@@ -23,13 +23,13 @@ public final class DoWhile extends TokenNode {
         predicate = new ExpressionNode(doWhile.predicate);
     }
 
-    public DoWhile(final String name, final Encoding encoding, final MSTNode token, final ExpressionNode predicate) {
+    public DoWhile(final String name, final Encoding encoding, final TokenNode token, final ExpressionNode predicate) {
         super(name, encoding);
         this.token = token;
         this.predicate = predicate;
     }
 
-    public MSTNode token() {
+    public TokenNode token() {
         return token;
     }
 

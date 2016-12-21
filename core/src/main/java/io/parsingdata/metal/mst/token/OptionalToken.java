@@ -11,19 +11,19 @@ import io.parsingdata.metal.token.Opt;
 
 public final class OptionalToken extends TokenNode {
 
-    private final MSTNode token;
+    private final TokenNode token;
 
     public OptionalToken(final Opt optionalToken) {
         super(optionalToken.name, optionalToken.encoding);
         token = wrap(optionalToken.token);
     }
 
-    public OptionalToken(final String name, final Encoding encoding, final MSTNode token) {
+    public OptionalToken(final String name, final Encoding encoding, final TokenNode token) {
         super(name, encoding);
         this.token = token;
     }
 
-    public MSTNode token() {
+    public TokenNode token() {
         return token;
     }
 

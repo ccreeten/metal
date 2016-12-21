@@ -22,19 +22,19 @@ import io.parsingdata.metal.token.While;
 
 public abstract class TokenNode implements MSTNode {
 
-    private static final List<Wrapper<?>> wrappers =
-        Arrays.asList(new Wrapper<>(Cho.class, Choice::new),
-                      new Wrapper<>(Def.class, Definition::new),
-                      new Wrapper<>(Nod.class, NoData::new),
-                      new Wrapper<>(Opt.class, OptionalToken::new),
-                      new Wrapper<>(Pre.class, Predicate::new),
-                      new Wrapper<>(Rep.class, Repetition::new),
-                      new Wrapper<>(RepN.class, BoundedRepetition::new),
-                      new Wrapper<>(Seq.class, Sequence::new),
-                      new Wrapper<>(Sub.class, SubStructure::new),
-                      new Wrapper<>(Tie.class, TokenInToken::new),
-                      new Wrapper<>(TokenRef.class, TokenReference::new),
-                      new Wrapper<>(While.class, DoWhile::new));
+    private static final List<Wrapper<?>> wrappers = Arrays.asList(
+            new Wrapper<>(Cho.class, Choice::new),
+            new Wrapper<>(Def.class, Definition::new),
+            new Wrapper<>(Nod.class, NoData::new),
+            new Wrapper<>(Opt.class, OptionalToken::new),
+            new Wrapper<>(Pre.class, Predicate::new),
+            new Wrapper<>(Rep.class, Repetition::new),
+            new Wrapper<>(RepN.class, BoundedRepetition::new),
+            new Wrapper<>(Seq.class, Sequence::new),
+            new Wrapper<>(Sub.class, SubStructure::new),
+            new Wrapper<>(Tie.class, TokenInToken::new),
+            new Wrapper<>(TokenRef.class, TokenReference::new),
+            new Wrapper<>(While.class, DoWhile::new));
 
     private final String name;
     private final Encoding encoding;
@@ -52,7 +52,7 @@ public abstract class TokenNode implements MSTNode {
         return encoding;
     }
 
-    public static MSTNode wrap(final Token token) {
+    public static TokenNode wrap(final Token token) {
         for (final Wrapper<?> wrapper : wrappers) {
             if (wrapper.matches(token)) {
                 return wrapper.wrap(token);
@@ -64,9 +64,9 @@ public abstract class TokenNode implements MSTNode {
     private static class Wrapper<T extends Token> {
 
         private final Class<T> clazz;
-        private final Function<T, MSTNode> constructor;
+        private final Function<T, TokenNode> constructor;
 
-        public Wrapper(final Class<T> clazz, final Function<T, MSTNode> constructor) {
+        public Wrapper(final Class<T> clazz, final Function<T, TokenNode> constructor) {
             this.clazz = clazz;
             this.constructor = constructor;
         }
@@ -75,7 +75,7 @@ public abstract class TokenNode implements MSTNode {
             return clazz.isInstance(token);
         }
 
-        public MSTNode wrap(final Token token) {
+        public TokenNode wrap(final Token token) {
             if (matches(token)) {
                 return constructor.apply(clazz.cast(token));
             }

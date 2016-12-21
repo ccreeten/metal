@@ -11,7 +11,7 @@ import io.parsingdata.metal.token.Pre;
 
 public final class Predicate extends TokenNode {
 
-    private final MSTNode token;
+    private final TokenNode token;
     private final ExpressionNode predicate;
 
     public Predicate(final Pre predicate) {
@@ -20,13 +20,13 @@ public final class Predicate extends TokenNode {
         this.predicate = new ExpressionNode(predicate.predicate);
     }
 
-    public Predicate(final String name, final Encoding encoding, final MSTNode token, final ExpressionNode predicate) {
+    public Predicate(final String name, final Encoding encoding, final TokenNode token, final ExpressionNode predicate) {
         super(name, encoding);
         this.token = token;
         this.predicate = predicate;
     }
 
-    public MSTNode token() {
+    public TokenNode token() {
         return token;
     }
 

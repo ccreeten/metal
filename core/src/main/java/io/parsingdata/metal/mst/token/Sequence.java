@@ -14,7 +14,7 @@ import io.parsingdata.metal.token.Token;
 
 public final class Sequence extends TokenNode {
 
-    private final List<MSTNode> tokens = new ArrayList<>();
+    private final List<TokenNode> tokens = new ArrayList<>();
 
     public Sequence(final Seq sequence) {
         super(sequence.name, sequence.encoding);
@@ -23,9 +23,13 @@ public final class Sequence extends TokenNode {
         }
     }
 
-    public Sequence(final String name, final Encoding encoding, final MSTNode... children) {
+    public Sequence(final String name, final Encoding encoding, final TokenNode... children) {
         super(name, encoding);
         tokens.addAll(Arrays.asList(children));
+    }
+
+    public List<TokenNode> tokens() {
+        return Collections.unmodifiableList(tokens);
     }
 
     @Override

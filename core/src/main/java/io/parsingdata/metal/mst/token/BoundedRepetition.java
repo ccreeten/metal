@@ -11,7 +11,7 @@ import io.parsingdata.metal.token.RepN;
 
 public final class BoundedRepetition extends TokenNode {
 
-    private final MSTNode token;
+    private final TokenNode token;
     private final ValueExpressionNode n;
 
     // TODO think about if the constructors should be public
@@ -22,13 +22,13 @@ public final class BoundedRepetition extends TokenNode {
         n = new ValueExpressionNode(boundedRepitition.n);
     }
 
-    public BoundedRepetition(final String name, final Encoding encoding, final MSTNode token, final ValueExpressionNode n) {
+    public BoundedRepetition(final String name, final Encoding encoding, final TokenNode token, final ValueExpressionNode n) {
         super(name, encoding);
         this.token = token;
         this.n = n;
     }
 
-    public MSTNode token() {
+    public TokenNode token() {
         return token;
     }
 

@@ -11,7 +11,7 @@ import io.parsingdata.metal.token.Sub;
 
 public final class SubStructure extends TokenNode {
 
-    private final MSTNode token;
+    private final TokenNode token;
     private final ValueExpressionNode address;
 
     public SubStructure(final Sub subStructure) {
@@ -20,13 +20,13 @@ public final class SubStructure extends TokenNode {
         address = new ValueExpressionNode(subStructure.address);
     }
 
-    public SubStructure(final String name, final Encoding encoding, final MSTNode token, final ValueExpressionNode address) {
+    public SubStructure(final String name, final Encoding encoding, final TokenNode token, final ValueExpressionNode address) {
         super(name, encoding);
         this.token = token;
         this.address = address;
     }
 
-    public MSTNode token() {
+    public TokenNode token() {
         return token;
     }
 

@@ -11,7 +11,7 @@ import io.parsingdata.metal.token.Tie;
 
 public final class TokenInToken extends TokenNode {
 
-    private final MSTNode token;
+    private final TokenNode token;
     private final ValueExpressionNode dataExpression;
 
     public TokenInToken(final Tie tokenInToken) {
@@ -20,13 +20,13 @@ public final class TokenInToken extends TokenNode {
         dataExpression = new ValueExpressionNode(tokenInToken.dataExpression);
     }
 
-    public TokenInToken(final String name, final Encoding encoding, final MSTNode token, final ValueExpressionNode dataExpression) {
+    public TokenInToken(final String name, final Encoding encoding, final TokenNode token, final ValueExpressionNode dataExpression) {
         super(name, encoding);
         this.token = token;
         this.dataExpression = dataExpression;
     }
 
-    public MSTNode token() {
+    public TokenNode token() {
         return token;
     }
 
