@@ -17,15 +17,39 @@
 package io.parsingdata.metal.data.selection;
 
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.data.ParseResult.failure;
 
+import java.io.IOException;
+
+import io.parsingdata.metal.data.Environment;
 import io.parsingdata.metal.data.ImmutableList;
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.ParseItem;
+import io.parsingdata.metal.data.ParseResult;
 import io.parsingdata.metal.data.ParseValue;
+import io.parsingdata.metal.encoding.Encoding;
+import io.parsingdata.metal.token.Token;
 
 public final class ByName {
 
+    private static final Token LOOKUP_FAILED = new Token("LOOKUP_FAILED", null) {
+        @Override
+        protected ParseResult parseImpl(String scope, Environment environment, Encoding encoding) throws IOException {
+            return failure(environment);
+        }
+    };
+
     private ByName() {}
+    
+    public static Token getDefinition(final ParseItem item, final String referenceName) {
+        if (item.getDefinition().name.equals(referenceName)) {
+            return item.getDefinition();
+        }
+        if (!item.isGraph() || item.asGraph().isEmpty()) { return LOOKUP_FAILED; }
+        final Token headResult = getDefinition(item.asGraph().head, referenceName);
+        if (headResult != LOOKUP_FAILED) { return headResult; }
+        return getDefinition(item.asGraph().tail, referenceName);
+    }
 
     /**
      * @param graph The graph to search
