@@ -31,5 +31,12 @@ public interface Trampoline<T> {
         }
         return current.result();
     }
+    
+    static <E> FinalTrampoline<E> base(final FinalTrampoline<E> trampoline) {
+    	return trampoline;
+    }
 
+    static <E> IntermediateTrampoline<E> recurse(final IntermediateTrampoline<E> trampoline) {
+    	return trampoline;
+    }
 }

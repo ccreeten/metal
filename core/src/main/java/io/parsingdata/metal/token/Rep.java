@@ -18,6 +18,8 @@ package io.parsingdata.metal.token;
 
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.Util.success;
+import static io.parsingdata.metal.token.util.Trampoline.base;
+import static io.parsingdata.metal.token.util.Trampoline.recurse;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -25,8 +27,6 @@ import java.util.Optional;
 
 import io.parsingdata.metal.data.Environment;
 import io.parsingdata.metal.encoding.Encoding;
-import io.parsingdata.metal.token.util.FinalTrampoline;
-import io.parsingdata.metal.token.util.IntermediateTrampoline;
 import io.parsingdata.metal.token.util.Trampoline;
 
 /**
@@ -55,9 +55,9 @@ public class Rep extends Token {
 
     private Trampoline<Environment> iterate(final String scope, final Optional<Environment> environment, final Encoding encoding, final Environment previous) throws IOException {
         if (environment.isPresent()) {
-            return (IntermediateTrampoline<Environment>) () -> iterate(scope, token.parse(scope, environment.get(), encoding), encoding, environment.get());
+            return recurse(() -> iterate(scope, token.parse(scope, environment.get(), encoding), encoding, environment.get()));
         } else {
-            return (FinalTrampoline<Environment>) () -> previous;
+            return base(() -> previous);
         }
     }
 

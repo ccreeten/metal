@@ -19,6 +19,8 @@ package io.parsingdata.metal.token;
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.Util.failure;
 import static io.parsingdata.metal.Util.success;
+import static io.parsingdata.metal.token.util.Trampoline.base;
+import static io.parsingdata.metal.token.util.Trampoline.recurse;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -30,8 +32,6 @@ import io.parsingdata.metal.data.ImmutableList;
 import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.expression.value.Value;
 import io.parsingdata.metal.expression.value.ValueExpression;
-import io.parsingdata.metal.token.util.FinalTrampoline;
-import io.parsingdata.metal.token.util.IntermediateTrampoline;
 import io.parsingdata.metal.token.util.Trampoline;
 
 /**
@@ -73,12 +73,12 @@ public class RepN extends Token {
     private Trampoline<Optional<Environment>> iterate(final String scope, final Optional<Environment> environment, final Encoding encoding, final long count) throws IOException {
         if (environment.isPresent()) {
             if (count <= 0) {
-                return (FinalTrampoline<Optional<Environment>>) () -> success(environment.get());
+                return base(() -> success(environment.get()));
             } else {
-                return (IntermediateTrampoline<Optional<Environment>>) () -> iterate(scope, token.parse(scope, environment.get(), encoding), encoding, count - 1);
+                return recurse(() -> iterate(scope, token.parse(scope, environment.get(), encoding), encoding, count - 1));
             }
         }
-        return (FinalTrampoline<Optional<Environment>>) Util::failure;
+        return base(Util::failure);
     }
 
     @Override
