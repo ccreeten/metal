@@ -20,6 +20,9 @@ import static io.parsingdata.metal.SafeTrampoline.complete;
 import static io.parsingdata.metal.SafeTrampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -56,19 +59,24 @@ public abstract class ComparisonExpression implements Expression {
     }
 
     @Override
-    public boolean eval(final ParseGraph graph, final Encoding encoding) {
+    public List<Boolean> eval(final ParseGraph graph, final Encoding encoding) {
         final ImmutableList<Optional<Value>> values = value == null ? ImmutableList.create(Optional.of(graph.current())) : value.eval(graph, encoding);
-        if (values.isEmpty()) { return false; }
+        if (values.isEmpty()) { return Collections.emptyList(); }
         final ImmutableList<Optional<Value>> predicates = predicate.eval(graph, encoding);
-        if (values.size != predicates.size) { return false; }
-        return compare(values, predicates).computeResult();
+        if (values.size != predicates.size) { return Collections.singletonList(false); }
+        return compare(values, predicates, new ArrayList<>()).computeResult();
     }
 
-    private SafeTrampoline<Boolean> compare(final ImmutableList<Optional<Value>> currents, final ImmutableList<Optional<Value>> predicates) {
-        if (!currents.head.isPresent() || !predicates.head.isPresent()) { return complete(() -> false); }
+    private SafeTrampoline<List<Boolean>> compare(final ImmutableList<Optional<Value>> currents, final ImmutableList<Optional<Value>> predicates, final List<Boolean> bools) {
+        if(currents.isEmpty()) { return complete(() -> bools); }
+        if (!currents.head.isPresent() || !predicates.head.isPresent()) { return intermediate(() -> compare(currents.tail, predicates.tail, add(bools, false))); }
         final boolean headResult = compare(currents.head.get(), predicates.head.get());
-        if (!headResult || currents.tail.isEmpty()) { return complete(() -> headResult); }
-        return intermediate(() -> compare(currents.tail, predicates.tail));
+        return intermediate(() -> compare(currents.tail, predicates.tail, add(bools, headResult)));
+    }
+
+    private List<Boolean> add(final List<Boolean> bools, final boolean bool) {
+        bools.add(bool);
+        return bools;
     }
 
     public abstract boolean compare(final Value left, final Value right);
@@ -81,8 +89,8 @@ public abstract class ComparisonExpression implements Expression {
     @Override
     public boolean equals(final Object obj) {
         return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(value, ((ComparisonExpression)obj).value)
-            && Objects.equals(predicate, ((ComparisonExpression)obj).predicate);
+                && Objects.equals(value, ((ComparisonExpression)obj).value)
+                && Objects.equals(predicate, ((ComparisonExpression)obj).predicate);
     }
 
     @Override

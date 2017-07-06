@@ -54,8 +54,8 @@ public class Post extends Token {
     @Override
     protected Optional<Environment> parseImpl(final String scope, final Environment environment, final Encoding encoding) throws IOException {
         return token.parse(scope, environment.addBranch(this), encoding)
-            .map(nextEnvironment -> predicate.eval(nextEnvironment.order, encoding) ? success(nextEnvironment.closeBranch()) : failure())
-            .orElseGet(Util::failure);
+                .map(nextEnvironment -> predicate.evalAndReduce(nextEnvironment.order, encoding) ? success(nextEnvironment.closeBranch()) : failure())
+                .orElseGet(Util::failure);
     }
 
     @Override
@@ -66,8 +66,8 @@ public class Post extends Token {
     @Override
     public boolean equals(final Object obj) {
         return super.equals(obj)
-            && Objects.equals(token, ((Post)obj).token)
-            && Objects.equals(predicate, ((Post)obj).predicate);
+                && Objects.equals(token, ((Post)obj).token)
+                && Objects.equals(predicate, ((Post)obj).predicate);
     }
 
     @Override

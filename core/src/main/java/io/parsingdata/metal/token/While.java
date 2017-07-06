@@ -62,10 +62,10 @@ public class While extends Token {
     }
 
     private Trampoline<Optional<Environment>> iterate(final String scope, final Environment environment, final Encoding encoding) throws IOException {
-        if (predicate.eval(environment.order, encoding)) {
+        if (predicate.evalAndReduce(environment.order, encoding)) {
             return token.parse(scope, environment, encoding)
-                .map(nextEnvironment -> intermediate(() -> iterate(scope, nextEnvironment, encoding)))
-                .orElseGet(() -> complete(Util::failure));
+                    .map(nextEnvironment -> intermediate(() -> iterate(scope, nextEnvironment, encoding)))
+                    .orElseGet(() -> complete(Util::failure));
         }
         return complete(() -> success(environment.closeBranch()));
     }
@@ -78,8 +78,8 @@ public class While extends Token {
     @Override
     public boolean equals(final Object obj) {
         return super.equals(obj)
-            && Objects.equals(token, ((While)obj).token)
-            && Objects.equals(predicate, ((While)obj).predicate);
+                && Objects.equals(token, ((While)obj).token)
+                && Objects.equals(predicate, ((While)obj).predicate);
     }
 
     @Override

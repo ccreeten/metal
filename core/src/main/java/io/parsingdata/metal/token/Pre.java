@@ -54,12 +54,12 @@ public class Pre extends Token {
 
     @Override
     protected Optional<Environment> parseImpl(final String scope, final Environment environment, final Encoding encoding) throws IOException {
-        if (!predicate.eval(environment.order, encoding)) {
+        if (!predicate.evalAndReduce(environment.order, encoding)) {
             return failure();
         }
         return token.parse(scope, environment.addBranch(this), encoding)
-            .map(resultEnvironment -> success(resultEnvironment.closeBranch()))
-            .orElseGet(Util::failure);
+                .map(resultEnvironment -> success(resultEnvironment.closeBranch()))
+                .orElseGet(Util::failure);
     }
 
     @Override
@@ -70,8 +70,8 @@ public class Pre extends Token {
     @Override
     public boolean equals(final Object obj) {
         return super.equals(obj)
-            && Objects.equals(token, ((Pre)obj).token)
-            && Objects.equals(predicate, ((Pre)obj).predicate);
+                && Objects.equals(token, ((Pre)obj).token)
+                && Objects.equals(predicate, ((Pre)obj).predicate);
     }
 
     @Override

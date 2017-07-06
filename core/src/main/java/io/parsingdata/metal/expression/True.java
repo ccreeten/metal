@@ -16,6 +16,8 @@
 
 package io.parsingdata.metal.expression;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import io.parsingdata.metal.Util;
@@ -29,7 +31,7 @@ import io.parsingdata.metal.encoding.Encoding;
 public class True implements Expression {
 
     @Override
-    public boolean eval(final ParseGraph graph, final Encoding encoding) { return true; }
+    public List<Boolean> eval(final ParseGraph graph, final Encoding encoding) { return Collections.singletonList(true); }
 
     @Override
     public String toString() {
