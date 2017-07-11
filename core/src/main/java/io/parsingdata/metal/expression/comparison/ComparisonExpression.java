@@ -16,11 +16,11 @@
 
 package io.parsingdata.metal.expression.comparison;
 
-import static java.util.function.Function.identity;
-
 import static io.parsingdata.metal.SafeTrampoline.complete;
 import static io.parsingdata.metal.SafeTrampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.data.transformation.Reversal.reverse;
+import static java.util.function.Function.identity;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -58,19 +58,27 @@ public abstract class ComparisonExpression implements Expression {
     }
 
     @Override
-    public boolean eval(final ParseGraph graph, final Encoding encoding) {
-        final ImmutableList<Optional<Value>> values = value == null ? ImmutableList.create(graph.current().map(identity())) : value.eval(graph, encoding);
-        if (values.isEmpty()) { return false; }
-        final ImmutableList<Optional<Value>> predicates = predicate.eval(graph, encoding);
-        if (values.size != predicates.size) { return false; }
-        return compare(values, predicates).computeResult();
+    public ImmutableList<Boolean> eval(final ParseGraph graph, final Encoding encoding) {
+        return compareLists(value == null ? ImmutableList.create(graph.current().map(identity())) : value.eval(graph, encoding), predicate.eval(graph, encoding));
+    }
+    
+    private ImmutableList<Boolean> compareLists(final ImmutableList<Optional<Value>> values, final ImmutableList<Optional<Value>> predicates) {
+        return reverse(padList(compareLists(values, predicates, new ImmutableList<>()).computeResult(), Math.abs(values.size - predicates.size)).computeResult());
+    }
+    
+    private SafeTrampoline<ImmutableList<Boolean>> compareLists(final ImmutableList<Optional<Value>> values, final ImmutableList<Optional<Value>> predicates, final ImmutableList<Boolean> results) {
+        if (values.isEmpty() || predicates.isEmpty()) { return complete(() -> results); }
+        return intermediate(() -> compareLists(values.tail, predicates.tail, results.add(compare(values.head, predicates.head))));
     }
 
-    private SafeTrampoline<Boolean> compare(final ImmutableList<Optional<Value>> currents, final ImmutableList<Optional<Value>> predicates) {
-        if (!currents.head.isPresent() || !predicates.head.isPresent()) { return complete(() -> false); }
-        final boolean headResult = compare(currents.head.get(), predicates.head.get());
-        if (!headResult || currents.tail.isEmpty()) { return complete(() -> headResult); }
-        return intermediate(() -> compare(currents.tail, predicates.tail));
+    private SafeTrampoline<ImmutableList<Boolean>> padList(final ImmutableList<Boolean> list, final long size) {
+        if (size <= 0) { return complete(() -> list); }
+        return intermediate(() -> padList(list.add(false), size - 1));
+    }
+
+    private boolean compare(final Optional<Value> left, final Optional<Value> right) {
+        if (!left.isPresent() || !right.isPresent()) { return false; }
+        return compare(left.get(), right.get());
     }
 
     public abstract boolean compare(final Value left, final Value right);

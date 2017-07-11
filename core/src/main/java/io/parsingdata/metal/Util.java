@@ -16,6 +16,9 @@
 
 package io.parsingdata.metal;
 
+import static io.parsingdata.metal.SafeTrampoline.complete;
+import static io.parsingdata.metal.SafeTrampoline.intermediate;
+
 import java.io.ByteArrayOutputStream;
 import java.util.Optional;
 import java.util.zip.DataFormatException;
@@ -23,6 +26,7 @@ import java.util.zip.Inflater;
 
 import io.parsingdata.metal.data.ConstantSource;
 import io.parsingdata.metal.data.Environment;
+import io.parsingdata.metal.data.ImmutableList;
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.data.Slice;
 import io.parsingdata.metal.encoding.Encoding;
@@ -96,6 +100,16 @@ public final class Util {
 
     public static Optional<Environment> failure() {
         return Optional.empty();
+    }
+
+    public static boolean allTrue(final ImmutableList<Boolean> values) {
+        return allTrueRecursive(values).computeResult();
+    }
+
+    private static SafeTrampoline<Boolean> allTrueRecursive(final ImmutableList<Boolean> values) {
+        if (values.isEmpty()) { return complete(() -> true); }
+        if (!values.head) { return complete(() -> false); }
+        return intermediate(() -> allTrueRecursive(values.tail));
     }
 
 }

@@ -19,6 +19,7 @@ package io.parsingdata.metal.expression;
 import java.util.Objects;
 
 import io.parsingdata.metal.Util;
+import io.parsingdata.metal.data.ImmutableList;
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.encoding.Encoding;
 
@@ -29,7 +30,7 @@ import io.parsingdata.metal.encoding.Encoding;
 public class True implements Expression {
 
     @Override
-    public boolean eval(final ParseGraph graph, final Encoding encoding) { return true; }
+    public ImmutableList<Boolean> eval(final ParseGraph graph, final Encoding encoding) { return ImmutableList.create(true); }
 
     @Override
     public String toString() {

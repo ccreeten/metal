@@ -16,11 +16,18 @@
 
 package io.parsingdata.metal.expression.logical;
 
+import static io.parsingdata.metal.SafeTrampoline.complete;
+import static io.parsingdata.metal.SafeTrampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.data.transformation.Reversal.reverse;
 
 import java.util.Objects;
 
+import io.parsingdata.metal.SafeTrampoline;
 import io.parsingdata.metal.Util;
+import io.parsingdata.metal.data.ImmutableList;
+import io.parsingdata.metal.data.ParseGraph;
+import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.expression.Expression;
 
 /**
@@ -40,6 +47,27 @@ public abstract class BinaryLogicalExpression implements LogicalExpression {
         this.left = checkNotNull(left, "left");
         this.right = checkNotNull(right, "right");
     }
+
+    @Override
+    public ImmutableList<Boolean> eval(final ParseGraph graph, final Encoding encoding) {
+        return evalLists(left.eval(graph, encoding), right.eval(graph, encoding));
+    }
+    
+    private ImmutableList<Boolean> evalLists(final ImmutableList<Boolean> lefts, final ImmutableList<Boolean> rights) {
+        return reverse(padList(evalLists(lefts, rights, new ImmutableList<>()).computeResult(), Math.abs(lefts.size - rights.size)).computeResult());
+    }
+    
+    private SafeTrampoline<ImmutableList<Boolean>> evalLists(final ImmutableList<Boolean> lefts, final ImmutableList<Boolean> rights, final ImmutableList<Boolean> results) {
+        if (lefts.isEmpty() || rights.isEmpty()) { return complete(() -> results); }
+        return intermediate(() -> evalLists(lefts.tail, rights.tail, results.add(eval(lefts.head, rights.head))));
+    }
+
+    private SafeTrampoline<ImmutableList<Boolean>> padList(final ImmutableList<Boolean> list, final long size) {
+        if (size <= 0) { return complete(() -> list); }
+        return intermediate(() -> padList(list.add(false), size - 1));
+    }
+
+    public abstract boolean eval(final boolean left, final boolean right);
 
     @Override
     public String toString() {

@@ -16,15 +16,17 @@
 
 package io.parsingdata.metal.token;
 
-import static io.parsingdata.metal.Shorthand.expTrue;
 import static io.parsingdata.metal.Trampoline.complete;
 import static io.parsingdata.metal.Trampoline.intermediate;
+import static io.parsingdata.metal.Util.allTrue;
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.Util.success;
 
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
+
+import static io.parsingdata.metal.Shorthand.expTrue;
 
 import io.parsingdata.metal.Trampoline;
 import io.parsingdata.metal.Util;
@@ -62,7 +64,7 @@ public class While extends Token {
     }
 
     private Trampoline<Optional<Environment>> iterate(final String scope, final Environment environment, final Encoding encoding) throws IOException {
-        if (predicate.eval(environment.order, encoding)) {
+        if (allTrue(predicate.eval(environment.order, encoding))) {
             return token.parse(scope, environment, encoding)
                 .map(nextEnvironment -> intermediate(() -> iterate(scope, nextEnvironment, encoding)))
                 .orElseGet(() -> complete(Util::failure));

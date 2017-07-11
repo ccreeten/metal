@@ -17,6 +17,7 @@
 package io.parsingdata.metal.expression;
 
 import io.parsingdata.metal.data.Environment;
+import io.parsingdata.metal.data.ImmutableList;
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.encoding.Encoding;
 
@@ -35,6 +36,6 @@ import io.parsingdata.metal.encoding.Encoding;
 @FunctionalInterface
 public interface Expression {
 
-    boolean eval(ParseGraph graph, Encoding encoding);
+    ImmutableList<Boolean> eval(ParseGraph graph, Encoding encoding);
 
 }

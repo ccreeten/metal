@@ -36,6 +36,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import io.parsingdata.metal.data.Environment;
+import io.parsingdata.metal.data.ImmutableList;
 import io.parsingdata.metal.data.ParseGraph;
 import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.expression.Expression;
@@ -72,7 +73,7 @@ public class ArgumentsTest {
     final private static String EMPTY_NAME = "";
     final private static ValueExpression VALID_VE = con(1);
     final private static BinaryOperator<ValueExpression> VALID_REDUCER = (left, right) -> null;
-    final private static Expression VALID_E = new Expression() { @Override public boolean eval(final ParseGraph graph, final Encoding encoding) { return false; }};
+    final private static Expression VALID_E = new Expression() { @Override public ImmutableList<Boolean> eval(final ParseGraph graph, final Encoding encoding) { return ImmutableList.create(false); }};
     final private static Token VALID_T = new Token("", null) { @Override protected Optional<Environment> parseImpl(final String scope, final Environment environment, final Encoding encoding) throws IOException { return null; } };
 
     private final Class<?> _class;

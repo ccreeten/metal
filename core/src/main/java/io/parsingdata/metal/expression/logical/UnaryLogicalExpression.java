@@ -16,11 +16,18 @@
 
 package io.parsingdata.metal.expression.logical;
 
+import static io.parsingdata.metal.SafeTrampoline.complete;
+import static io.parsingdata.metal.SafeTrampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.data.transformation.Reversal.reverse;
 
 import java.util.Objects;
 
+import io.parsingdata.metal.SafeTrampoline;
 import io.parsingdata.metal.Util;
+import io.parsingdata.metal.data.ImmutableList;
+import io.parsingdata.metal.data.ParseGraph;
+import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.expression.Expression;
 
 /**
@@ -38,6 +45,18 @@ public abstract class UnaryLogicalExpression implements LogicalExpression {
     public UnaryLogicalExpression(final Expression operand) {
         this.operand = checkNotNull(operand, "operand");
     }
+
+    @Override
+    public ImmutableList<Boolean> eval(final ParseGraph graph, final Encoding encoding) {
+        return reverse(eval(operand.eval(graph, encoding), new ImmutableList<>()).computeResult());
+    }
+
+    private SafeTrampoline<ImmutableList<Boolean>> eval(final ImmutableList<Boolean> values, final ImmutableList<Boolean> result) {
+        if (values.isEmpty()) { return complete(() -> result); }
+        return intermediate(() -> eval(values.tail, result.add(eval(values.head))));
+    }
+
+    public abstract boolean eval(final boolean value);
 
     @Override
     public String toString() {

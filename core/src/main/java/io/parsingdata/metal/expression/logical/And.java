@@ -16,8 +16,6 @@
 
 package io.parsingdata.metal.expression.logical;
 
-import io.parsingdata.metal.data.ParseGraph;
-import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.expression.Expression;
 
 /**
@@ -30,8 +28,8 @@ public class And extends BinaryLogicalExpression {
     }
 
     @Override
-    public boolean eval(final ParseGraph graph, final Encoding encoding) {
-        return left.eval(graph, encoding) && right.eval(graph, encoding);
+    public boolean eval(final boolean left, final boolean right) {
+        return left && right;
     }
 
 }

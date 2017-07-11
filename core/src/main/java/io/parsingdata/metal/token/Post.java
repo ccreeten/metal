@@ -16,6 +16,7 @@
 
 package io.parsingdata.metal.token;
 
+import static io.parsingdata.metal.Util.allTrue;
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.Util.failure;
 import static io.parsingdata.metal.Util.success;
@@ -54,7 +55,7 @@ public class Post extends Token {
     @Override
     protected Optional<Environment> parseImpl(final String scope, final Environment environment, final Encoding encoding) throws IOException {
         return token.parse(scope, environment.addBranch(this), encoding)
-            .map(nextEnvironment -> predicate.eval(nextEnvironment.order, encoding) ? success(nextEnvironment.closeBranch()) : failure())
+            .map(nextEnvironment -> allTrue(predicate.eval(nextEnvironment.order, encoding)) ? success(nextEnvironment.closeBranch()) : failure())
             .orElseGet(Util::failure);
     }
 
