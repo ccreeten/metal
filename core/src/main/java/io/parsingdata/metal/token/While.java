@@ -16,6 +16,7 @@
 
 package io.parsingdata.metal.token;
 
+import static io.parsingdata.metal.Shorthand.expTrue;
 import static io.parsingdata.metal.Trampoline.complete;
 import static io.parsingdata.metal.Trampoline.intermediate;
 import static io.parsingdata.metal.Util.allTrue;
@@ -25,8 +26,6 @@ import static io.parsingdata.metal.Util.success;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
-
-import static io.parsingdata.metal.Shorthand.expTrue;
 
 import io.parsingdata.metal.Trampoline;
 import io.parsingdata.metal.Util;

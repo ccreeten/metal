@@ -38,4 +38,5 @@ public interface Expression {
 
     ImmutableList<Boolean> eval(ParseGraph graph, Encoding encoding);
 
+    // TODO: should the reducing operation be present here? See Util#allTrue
 }

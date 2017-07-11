@@ -16,11 +16,12 @@
 
 package io.parsingdata.metal.expression.comparison;
 
+import static java.util.function.Function.identity;
+
 import static io.parsingdata.metal.SafeTrampoline.complete;
 import static io.parsingdata.metal.SafeTrampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.data.transformation.Reversal.reverse;
-import static java.util.function.Function.identity;
 
 import java.util.Objects;
 import java.util.Optional;
