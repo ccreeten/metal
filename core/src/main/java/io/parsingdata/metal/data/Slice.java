@@ -20,12 +20,11 @@ import static java.math.BigInteger.ZERO;
 
 import static io.parsingdata.metal.Util.checkNotNegative;
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.math.BigInteger;
 import java.util.Objects;
 import java.util.Optional;
-
-import io.parsingdata.metal.Util;
 
 public class Slice {
 
@@ -68,10 +67,11 @@ public class Slice {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(source, ((Slice)obj).source)
-            && Objects.equals(offset, ((Slice)obj).offset)
-            && Objects.equals(length, ((Slice)obj).length);
+        return sameClass(this, obj)
+            .check(slice -> slice.source)
+            .check(slice -> slice.offset)
+            .check(slice -> slice.length)
+            .evaluate();
     }
 
     @Override

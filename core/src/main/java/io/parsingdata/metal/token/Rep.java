@@ -66,8 +66,7 @@ public class Rep extends Token {
 
     @Override
     public boolean equals(final Object obj) {
-        return super.equals(obj)
-            && Objects.equals(token, ((Rep)obj).token);
+        return super.equalityOf(this, obj).check(rep -> rep.token).evaluate();
     }
 
     @Override

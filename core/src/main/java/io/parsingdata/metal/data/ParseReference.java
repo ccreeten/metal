@@ -55,9 +55,9 @@ public class ParseReference implements ParseItem {
     @Override
     public boolean equals(final Object obj) {
         return sameClass(this, obj)
-            .check(source -> source.location)
-            .check(source -> source.source)
-            .check(source -> source.definition)
+            .check(reference -> reference.location)
+            .check(reference -> reference.source)
+            .check(reference -> reference.definition)
             .evaluate();
     }
 

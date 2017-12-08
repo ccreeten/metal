@@ -82,8 +82,7 @@ public class Def extends Token {
 
     @Override
     public boolean equals(final Object obj) {
-        return super.equals(obj)
-            && Objects.equals(size, ((Def)obj).size);
+        return super.equalityOf(this, obj).check(def -> def.size).evaluate();
     }
 
     @Override

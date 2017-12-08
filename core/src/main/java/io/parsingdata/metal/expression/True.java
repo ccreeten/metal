@@ -16,7 +16,8 @@
 
 package io.parsingdata.metal.expression;
 
-import io.parsingdata.metal.Util;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
+
 import io.parsingdata.metal.data.ParseState;
 import io.parsingdata.metal.encoding.Encoding;
 
@@ -38,7 +39,7 @@ public class True implements Expression {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj);
+        return sameClass(this, obj).evaluate();
     }
 
     @Override

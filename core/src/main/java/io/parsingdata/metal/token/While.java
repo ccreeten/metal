@@ -78,9 +78,10 @@ public class While extends Token {
 
     @Override
     public boolean equals(final Object obj) {
-        return super.equals(obj)
-            && Objects.equals(token, ((While)obj).token)
-            && Objects.equals(predicate, ((While)obj).predicate);
+        return super.equalityOf(this, obj)
+            .check(whl -> whl.token)
+            .check(whl -> whl.predicate)
+            .evaluate();
     }
 
     @Override

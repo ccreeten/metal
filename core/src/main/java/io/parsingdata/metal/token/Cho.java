@@ -73,8 +73,7 @@ public class Cho extends Token {
 
     @Override
     public boolean equals(final Object obj) {
-        return super.equals(obj)
-            && Objects.equals(tokens, ((Cho)obj).tokens);
+        return super.equalityOf(this, obj).check(cho -> cho.tokens).evaluate();
     }
 
     @Override

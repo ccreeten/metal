@@ -18,16 +18,17 @@ package io.parsingdata.metal.expression.value;
 
 import static io.parsingdata.metal.Util.bytesToHexString;
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.Objects;
 
-import io.parsingdata.metal.Util;
 import io.parsingdata.metal.data.Slice;
 import io.parsingdata.metal.encoding.ByteOrder;
 import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.encoding.Sign;
+import io.parsingdata.metal.util.EqualityCheck;
 
 public class Value {
 
@@ -62,6 +63,12 @@ public class Value {
         return BitSet.valueOf(encoding.byteOrder == ByteOrder.BIG_ENDIAN ? ByteOrder.LITTLE_ENDIAN.apply(getValue()) : getValue());
     }
 
+    protected <T extends Value> EqualityCheck<T> equalityOf(T left, Object right) {
+        return sameClass(left, right)
+            .check(value -> value.encoding)
+            .check(value -> value.slice);
+    }
+    
     @Override
     public String toString() {
         return "0x" + bytesToHexString(slice.getData(TO_STRING_BYTE_COUNT)) + (getLength().compareTo(TO_STRING_BYTE_COUNT) > 0 ? "..." : "");
@@ -69,9 +76,7 @@ public class Value {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(slice, ((Value)obj).slice)
-            && Objects.equals(encoding, ((Value)obj).encoding);
+        return equalityOf(this, obj).evaluate();
     }
 
     @Override

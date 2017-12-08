@@ -83,9 +83,10 @@ public class RepN extends Token {
 
     @Override
     public boolean equals(final Object obj) {
-        return super.equals(obj)
-            && Objects.equals(token, ((RepN)obj).token)
-            && Objects.equals(n, ((RepN)obj).n);
+        return super.equalityOf(this, obj)
+            .check(repn -> repn.token)
+            .check(repn -> repn.n)
+            .evaluate();
     }
 
     @Override

@@ -92,8 +92,7 @@ public class TokenRef extends Token {
 
     @Override
     public boolean equals(final Object obj) {
-        return super.equals(obj)
-            && Objects.equals(referenceName, ((TokenRef)obj).referenceName);
+        return super.equalityOf(this, obj).check(tokenRef -> tokenRef.referenceName).evaluate();
     }
 
     @Override

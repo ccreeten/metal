@@ -134,11 +134,12 @@ public class Until extends Token {
 
     @Override
     public boolean equals(final Object obj) {
-        return super.equals(obj)
-            && Objects.equals(initialSize, ((Until)obj).initialSize)
-            && Objects.equals(stepSize, ((Until)obj).stepSize)
-            && Objects.equals(maxSize, ((Until)obj).maxSize)
-            && Objects.equals(terminator, ((Until)obj).terminator);
+        return super.equalityOf(this, obj)
+            .check(until -> until.initialSize)
+            .check(until -> until.stepSize)
+            .check(until -> until.maxSize)
+            .check(until -> until.terminator)
+            .evaluate();
     }
 
     @Override

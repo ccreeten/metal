@@ -87,9 +87,9 @@ public class ParseState {
     @Override
     public boolean equals(final Object obj) {
         return sameClass(this, obj)
-            .check(source -> source.order)
-            .check(source -> source.offset)
-            .check(source -> source.source)
+            .check(state -> state.order)
+            .check(state -> state.offset)
+            .check(state -> state.source)
             .evaluate();
     }
 

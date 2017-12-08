@@ -20,12 +20,12 @@ import static io.parsingdata.metal.Trampoline.complete;
 import static io.parsingdata.metal.Trampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.data.Selection.reverse;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.util.Objects;
 import java.util.Optional;
 
 import io.parsingdata.metal.Trampoline;
-import io.parsingdata.metal.Util;
 import io.parsingdata.metal.data.ImmutableList;
 import io.parsingdata.metal.data.ParseState;
 import io.parsingdata.metal.encoding.Encoding;
@@ -93,9 +93,10 @@ public abstract class BinaryValueExpression implements ValueExpression {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(left, ((BinaryValueExpression)obj).left)
-            && Objects.equals(right, ((BinaryValueExpression)obj).right);
+        return sameClass(this, obj)
+            .check(expression -> expression.left)
+            .check(expression -> expression.right)
+            .evaluate();
     }
 
     @Override

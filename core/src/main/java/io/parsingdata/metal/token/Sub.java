@@ -105,9 +105,10 @@ public class Sub extends Token {
 
     @Override
     public boolean equals(final Object obj) {
-        return super.equals(obj)
-            && Objects.equals(token, ((Sub)obj).token)
-            && Objects.equals(address, ((Sub)obj).address);
+        return super.equalityOf(this, obj)
+            .check(sub -> sub.token)
+            .check(sub -> sub.address)
+            .evaluate();
     }
 
     @Override

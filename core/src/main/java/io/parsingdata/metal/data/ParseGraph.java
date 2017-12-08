@@ -135,10 +135,10 @@ public class ParseGraph implements ParseItem {
     @Override
     public boolean equals(final Object obj) {
         return sameClass(this, obj)
-            .check(source -> source.head)
-            .check(source -> source.tail)
-            .check(source -> source.branched)
-            .check(source -> source.definition)
+            .check(graph -> graph.head)
+            .check(graph -> graph.tail)
+            .check(graph -> graph.branched)
+            .check(graph -> graph.definition)
             .evaluate();
         // The size field is excluded from equals() and hashCode() because it is cached data.
     }

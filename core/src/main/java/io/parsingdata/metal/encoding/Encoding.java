@@ -17,12 +17,11 @@
 package io.parsingdata.metal.encoding;
 
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-
-import io.parsingdata.metal.Util;
 
 public class Encoding {
 
@@ -63,10 +62,11 @@ public class Encoding {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(sign, ((Encoding) obj).sign)
-            && Objects.equals(charset, ((Encoding) obj).charset)
-            && Objects.equals(byteOrder, ((Encoding) obj).byteOrder);
+        return sameClass(this, obj)
+            .check(encoding -> encoding.sign)
+            .check(encoding -> encoding.charset)
+            .check(encoding -> encoding.byteOrder)
+            .evaluate();
     }
 
     @Override

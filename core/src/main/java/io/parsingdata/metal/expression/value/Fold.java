@@ -19,13 +19,13 @@ package io.parsingdata.metal.expression.value;
 import static io.parsingdata.metal.Trampoline.complete;
 import static io.parsingdata.metal.Trampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 
 import io.parsingdata.metal.Trampoline;
-import io.parsingdata.metal.Util;
 import io.parsingdata.metal.data.ImmutableList;
 import io.parsingdata.metal.data.ParseState;
 import io.parsingdata.metal.encoding.Encoding;
@@ -103,10 +103,11 @@ public abstract class Fold implements ValueExpression {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(values, ((Fold)obj).values)
-            && Objects.equals(reducer, ((Fold)obj).reducer)
-            && Objects.equals(initial, ((Fold)obj).initial);
+        return sameClass(this, obj)
+            .check(fold -> fold.values)
+            .check(fold -> fold.reducer)
+            .check(fold -> fold.initial)
+            .evaluate();
     }
 
     @Override

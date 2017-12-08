@@ -19,14 +19,15 @@ package io.parsingdata.metal.token;
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.data.callback.Callbacks.failure;
 import static io.parsingdata.metal.data.callback.Callbacks.success;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.util.Objects;
 import java.util.Optional;
 
-import io.parsingdata.metal.Util;
 import io.parsingdata.metal.data.Environment;
 import io.parsingdata.metal.data.ParseState;
 import io.parsingdata.metal.encoding.Encoding;
+import io.parsingdata.metal.util.EqualityCheck;
 
 /**
  * Base class for all Token implementations.
@@ -87,11 +88,16 @@ public abstract class Token {
         return name.isEmpty() ? NO_NAME : name + ",";
     }
 
+    protected <T extends Token> EqualityCheck<T> equalityOf(T left, Object right) {
+        return sameClass(left, right)
+            .check(token -> token.name)
+            .check(token -> token.encoding);
+    }
+    
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(name, ((Token)obj).name)
-            && Objects.equals(encoding, ((Token)obj).encoding);
+        // TODO: since class is abstract, shouldn't actually need an implementation any more
+        return equalityOf(this, obj).evaluate();
     }
 
     @Override

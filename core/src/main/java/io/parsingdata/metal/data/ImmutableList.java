@@ -90,8 +90,8 @@ public class ImmutableList<T> {
     @Override
     public boolean equals(final Object obj) {
         return sameClass(this, obj)
-            .check(source -> source.head)
-            .check(source -> source.tail)
+            .check(list -> list.head)
+            .check(list -> list.tail)
             .evaluate();
         // The size field is excluded from equals() and hashCode() because it is cached data.
     }

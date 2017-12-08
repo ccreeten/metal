@@ -66,9 +66,10 @@ public class Post extends Token {
 
     @Override
     public boolean equals(final Object obj) {
-        return super.equals(obj)
-            && Objects.equals(token, ((Post)obj).token)
-            && Objects.equals(predicate, ((Post)obj).predicate);
+        return super.equalityOf(this, obj)
+            .check(post -> post.token)
+            .check(post -> post.predicate)
+            .evaluate();
     }
 
     @Override

@@ -20,12 +20,12 @@ import static io.parsingdata.metal.Trampoline.complete;
 import static io.parsingdata.metal.Trampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.data.Selection.reverse;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.util.Objects;
 import java.util.Optional;
 
 import io.parsingdata.metal.Trampoline;
-import io.parsingdata.metal.Util;
 import io.parsingdata.metal.data.ImmutableList;
 import io.parsingdata.metal.data.ParseState;
 import io.parsingdata.metal.encoding.Encoding;
@@ -74,9 +74,10 @@ public class Elvis implements ValueExpression {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(left, ((Elvis)obj).left)
-            && Objects.equals(right, ((Elvis)obj).right);
+        return sameClass(this, obj)
+            .check(evlis -> evlis.left)
+            .check(evlis -> evlis.right)
+            .evaluate();
     }
 
     @Override

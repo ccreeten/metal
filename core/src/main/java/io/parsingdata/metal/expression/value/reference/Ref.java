@@ -21,13 +21,13 @@ import static io.parsingdata.metal.Trampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.data.Selection.NO_LIMIT;
 import static io.parsingdata.metal.data.Selection.getAllValues;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 import io.parsingdata.metal.Trampoline;
-import io.parsingdata.metal.Util;
 import io.parsingdata.metal.data.ImmutableList;
 import io.parsingdata.metal.data.ParseState;
 import io.parsingdata.metal.data.ParseValue;
@@ -72,7 +72,7 @@ public class Ref<T> implements ValueExpression {
         if (limit == null) {
             return evalImpl(parseState, NO_LIMIT);
         }
-        ImmutableList<Optional<Value>> evaluatedLimit = limit.eval(parseState, encoding);
+        final ImmutableList<Optional<Value>> evaluatedLimit = limit.eval(parseState, encoding);
         if (evaluatedLimit.size != 1 || !evaluatedLimit.head.isPresent()) {
             throw new IllegalArgumentException("Limit must evaluate to a single non-empty value.");
         }
@@ -97,9 +97,10 @@ public class Ref<T> implements ValueExpression {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(reference, ((Ref)obj).reference)
-            && Objects.equals(limit, ((Ref)obj).limit);
+        return sameClass(this, obj)
+            .check(ref -> ref.reference)
+            .check(ref -> ref.limit)
+            .evaluate();
     }
 
     @Override
