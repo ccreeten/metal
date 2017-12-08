@@ -20,14 +20,13 @@ import static io.parsingdata.metal.Trampoline.complete;
 import static io.parsingdata.metal.Trampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNegative;
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
 import io.parsingdata.metal.Trampoline;
-import io.parsingdata.metal.Util;
 import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.expression.value.Value;
 import io.parsingdata.metal.expression.value.ValueExpression;
@@ -92,12 +91,13 @@ public class DataExpressionSource extends Source {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(dataExpression, ((DataExpressionSource)obj).dataExpression)
-            && Objects.equals(index, ((DataExpressionSource)obj).index)
-            && Objects.equals(parseState, ((DataExpressionSource)obj).parseState)
-            && Objects.equals(encoding, ((DataExpressionSource)obj).encoding);
+    public boolean equals(final Object obj) {
+        return sameClass(this, obj)
+            .check(source -> source.dataExpression)
+            .check(source -> source.index)
+            .check(source -> source.parseState)
+            .check(source -> source.encoding)
+            .evaluate();
     }
 
     @Override

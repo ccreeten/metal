@@ -19,12 +19,11 @@ package io.parsingdata.metal.data;
 import static io.parsingdata.metal.Util.bytesToHexString;
 import static io.parsingdata.metal.Util.checkNotNegative;
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Objects;
-
-import io.parsingdata.metal.Util;
 
 public class ConstantSource extends Source {
 
@@ -56,8 +55,9 @@ public class ConstantSource extends Source {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Arrays.equals(data, ((ConstantSource)obj).data);
+        return sameClass(this, obj)
+            .check(source -> source.data, Arrays::equals)
+            .evaluate();
     }
 
     @Override

@@ -22,14 +22,13 @@ import static io.parsingdata.metal.Trampoline.complete;
 import static io.parsingdata.metal.Trampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNegative;
 import static io.parsingdata.metal.Util.checkNotNull;
-import static io.parsingdata.metal.data.Slice.createFromSource;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.math.BigInteger;
 import java.util.Objects;
 import java.util.Optional;
 
 import io.parsingdata.metal.Trampoline;
-import io.parsingdata.metal.Util;
 import io.parsingdata.metal.expression.value.Value;
 
 public class ConcatenatedValueSource extends Source {
@@ -104,9 +103,10 @@ public class ConcatenatedValueSource extends Source {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(values, ((ConcatenatedValueSource)obj).values)
-            && Objects.equals(length, ((ConcatenatedValueSource)obj).length);
+        return sameClass(this, obj)
+            .check(source -> source.values)
+            .check(source -> source.length)
+            .evaluate();
     }
 
     @Override

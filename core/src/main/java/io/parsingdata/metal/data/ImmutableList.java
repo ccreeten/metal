@@ -20,11 +20,11 @@ import static io.parsingdata.metal.Trampoline.complete;
 import static io.parsingdata.metal.Trampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
 import static io.parsingdata.metal.data.Selection.reverse;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.util.Objects;
 
 import io.parsingdata.metal.Trampoline;
-import io.parsingdata.metal.Util;
 
 public class ImmutableList<T> {
 
@@ -89,9 +89,10 @@ public class ImmutableList<T> {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(head, ((ImmutableList)obj).head)
-            && Objects.equals(tail, ((ImmutableList)obj).tail);
+        return sameClass(this, obj)
+            .check(source -> source.head)
+            .check(source -> source.tail)
+            .evaluate();
         // The size field is excluded from equals() and hashCode() because it is cached data.
     }
 

@@ -19,12 +19,12 @@ package io.parsingdata.metal.data;
 import static io.parsingdata.metal.Trampoline.complete;
 import static io.parsingdata.metal.Trampoline.intermediate;
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.util.Objects;
 import java.util.Optional;
 
 import io.parsingdata.metal.Trampoline;
-import io.parsingdata.metal.Util;
 import io.parsingdata.metal.token.Token;
 
 public class ParseGraph implements ParseItem {
@@ -134,12 +134,13 @@ public class ParseGraph implements ParseItem {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(head, ((ParseGraph)obj).head)
-            && Objects.equals(tail, ((ParseGraph)obj).tail)
-            && Objects.equals(branched, ((ParseGraph)obj).branched)
-            && Objects.equals(definition, ((ParseGraph)obj).definition);
-            // The size field is excluded from equals() and hashCode() because it is cached data.
+        return sameClass(this, obj)
+            .check(source -> source.head)
+            .check(source -> source.tail)
+            .check(source -> source.branched)
+            .check(source -> source.definition)
+            .evaluate();
+        // The size field is excluded from equals() and hashCode() because it is cached data.
     }
 
     @Override

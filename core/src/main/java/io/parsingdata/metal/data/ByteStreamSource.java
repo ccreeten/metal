@@ -18,13 +18,12 @@ package io.parsingdata.metal.data;
 
 import static io.parsingdata.metal.Util.checkNotNegative;
 import static io.parsingdata.metal.Util.checkNotNull;
+import static io.parsingdata.metal.util.EqualityCheck.sameClass;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.util.Objects;
-
-import io.parsingdata.metal.Util;
 
 public class ByteStreamSource extends Source {
 
@@ -58,8 +57,9 @@ public class ByteStreamSource extends Source {
 
     @Override
     public boolean equals(final Object obj) {
-        return Util.notNullAndSameClass(this, obj)
-            && Objects.equals(input, ((ByteStreamSource)obj).input);
+        return sameClass(this, obj)
+            .check(source -> source.input)
+            .evaluate();
     }
 
     @Override
