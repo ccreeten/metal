@@ -1,3 +1,18 @@
+/*
+ * Copyright 2013-2016 Netherlands Forensic Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.parsingdata.metal.util;
 
 import java.util.Objects;
@@ -12,14 +27,6 @@ public interface EqualityCheck<T> {
 
     boolean evaluate();
 
-    static <T> EqualityCheck<T> failed() {
-        return new CompletedEqualityCheck<>(false);
-    }
-
-    static <T> EqualityCheck<T> succeeded() {
-        return new CompletedEqualityCheck<>(true);
-    }
-
     @SuppressWarnings("unchecked")
     public static <T> EqualityCheck<T> sameClass(final T left, final Object right) {
         // for any non-null reference value x, x.equals(x) should return true
@@ -30,35 +37,27 @@ public interface EqualityCheck<T> {
         if (right == null) {
             return failed();
         }
-        // liskov violation, subclass can never equal superclass
+        // technically a liskov violation, subclass can never equal superclass
         if (left.getClass().equals(right.getClass())) {
-            return new ProceedingEqualityCheck<>(left, (T) right);
+            return new IntermediateEqualityCheck<>(left, (T) right);
         }
         return failed();
     }
 
-    public static <T> EqualityCheck<T> equalityOf(final T left, final T right) {
-        // for any non-null reference value x, x.equals(x) should return true
-        if (left == right) {
-            return succeeded();
-        }
-        // for any non-null reference value x, x.equals(null) should return false
-        if (right == null) {
-            return failed();
-        }
-        // liskov violation, subclass can never equal superclass
-        if (left.getClass().equals(right.getClass())) {
-            return new ProceedingEqualityCheck<>(left, right);
-        }
-        return failed();
+    static <T> EqualityCheck<T> failed() {
+        return new CompletedEqualityCheck<>(false);
     }
 
-    static final class ProceedingEqualityCheck<T> implements EqualityCheck<T> {
+    static <T> EqualityCheck<T> succeeded() {
+        return new CompletedEqualityCheck<>(true);
+    }
+
+    static final class IntermediateEqualityCheck<T> implements EqualityCheck<T> {
 
         private final T left;
         private final T right;
 
-        private ProceedingEqualityCheck(final T left, final T right) {
+        private IntermediateEqualityCheck(final T left, final T right) {
             this.left = left;
             this.right = right;
         }
@@ -82,6 +81,9 @@ public interface EqualityCheck<T> {
         }
     }
 
+    // TODO: could let the checking methods have a default implementation
+    // then for succeed/fail I could create a constant, using a lambda returning true/false
+    // using raw types, like for example Collections#EMPTY_LIST
     static final class CompletedEqualityCheck<T> implements EqualityCheck<T> {
 
         private final boolean result;
