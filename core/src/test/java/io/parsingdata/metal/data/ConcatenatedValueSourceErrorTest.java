@@ -16,11 +16,36 @@
 
 package io.parsingdata.metal.data;
 
+import static java.util.stream.IntStream.generate;
+
 import static org.junit.Assert.assertFalse;
+
+import static io.parsingdata.metal.Shorthand.fold;
+import static io.parsingdata.metal.Shorthand.ref;
+import static io.parsingdata.metal.Shorthand.rep;
+import static io.parsingdata.metal.Shorthand.seq;
+import static io.parsingdata.metal.Shorthand.tie;
+import static io.parsingdata.metal.util.EnvironmentFactory.env;
+import static io.parsingdata.metal.util.ParseStateFactory.stream;
+import static io.parsingdata.metal.util.TokenDefinitions.any;
 
 import org.junit.Test;
 
+import io.parsingdata.metal.Shorthand;
+import io.parsingdata.metal.token.Token;
+
 public class ConcatenatedValueSourceErrorTest {
+
+    @Test
+    public void recursiveConcatenatedSources() {
+        final Environment env = env(stream(generate(() -> 0).limit(10000).toArray()));
+        final Token token = rep(
+            seq(
+                any("val"),
+                tie(any("val"), fold(ref("val"), Shorthand::cat)))
+        );
+        token.parse(env);
+    }
 
     @Test
     public void emptyConcatenatedValueSource() {
