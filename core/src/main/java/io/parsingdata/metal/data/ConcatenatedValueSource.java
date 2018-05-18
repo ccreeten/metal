@@ -26,6 +26,7 @@ import static io.parsingdata.metal.Util.checkNotNull;
 import java.math.BigInteger;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import io.parsingdata.metal.Trampoline;
 import io.parsingdata.metal.Util;
@@ -75,21 +76,29 @@ public class ConcatenatedValueSource extends Source {
         if (!isAvailable(offset, length)) {
             throw new IllegalStateException("Data to read is not available (offset=" + offset + ";length=" + length + ";source=" + this + ").");
         }
-        return getData(values, ZERO, ZERO, offset, length, new byte[length.intValueExact()]).computeResult();
+        final byte[] output = new byte[length.intValueExact()];
+        return getData(values, ZERO, ZERO, offset, length, output, () -> complete(() -> output)).computeResult();
     }
 
-    private Trampoline<byte[]> getData(final ImmutableList<Value> values, final BigInteger currentOffset, final BigInteger currentDest, final BigInteger offset, final BigInteger length, final byte[] output) {
+    private Trampoline<byte[]> getData(final ImmutableList<Value> values, final BigInteger currentOffset, final BigInteger currentDest, final BigInteger offset, final BigInteger length, final byte[] output, final Supplier<Trampoline<byte[]>> continuation) {
         if (length.compareTo(ZERO) <= 0) {
-            return complete(() -> output);
+            return continuation.get();
         }
-        if (currentOffset.add(values.head.slice.length).compareTo(offset) <= 0) {
-            return intermediate(() -> getData(values.tail, currentOffset.add(values.head.slice.length), currentDest, offset, length, output));
+        final Slice headSlice = values.head.slice;
+        if (currentOffset.add(headSlice.length).compareTo(offset) <= 0) {
+            return getData(values.tail, currentOffset.add(headSlice.length), currentDest, offset, length, output, continuation);
         }
         final BigInteger localOffset = offset.subtract(currentOffset).compareTo(ZERO) < 0 ? ZERO : offset.subtract(currentOffset);
-        final BigInteger toCopy = length.compareTo(values.head.slice.length.subtract(localOffset)) > 0 ? values.head.slice.length.subtract(localOffset) : length;
-        System.arraycopy(values.head.slice.getData(), localOffset.intValueExact(), output, currentDest.intValueExact(), toCopy.intValueExact());
-        return intermediate(() -> getData(values.tail, currentOffset.add(values.head.slice.length), currentDest.add(toCopy), offset, length.subtract(toCopy), output));
+        final BigInteger toCopy = length.compareTo(headSlice.length.subtract(localOffset)) > 0 ? headSlice.length.subtract(localOffset) : length;
+        final Source headSource = headSlice.source;
+        if (headSource instanceof ConcatenatedValueSource) {
+            final ConcatenatedValueSource concatenatedHeadSource = ((ConcatenatedValueSource) headSource);
+            return intermediate(() -> concatenatedHeadSource.getData(concatenatedHeadSource.values, currentOffset, currentDest, headSlice.offset, headSlice.length, output, () -> intermediate(() -> getData(values.tail, currentOffset.add(headSlice.length), currentDest.add(toCopy), offset, length.subtract(toCopy), output, continuation))));
+        }
+        System.arraycopy(headSlice.getData(), localOffset.intValueExact(), output, currentDest.intValueExact(), toCopy.intValueExact());
+        return intermediate(() -> getData(values.tail, currentOffset.add(headSlice.length), currentDest.add(toCopy), offset, length.subtract(toCopy), output, continuation));
     }
+
 
     @Override
     protected boolean isAvailable(final BigInteger offset, final BigInteger length) {
