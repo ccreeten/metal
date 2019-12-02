@@ -16,8 +16,11 @@
 
 package io.parsingdata.metal;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import static io.parsingdata.metal.Shorthand.EMPTY;
@@ -35,12 +38,19 @@ import static io.parsingdata.metal.util.EnvironmentFactory.env;
 import static io.parsingdata.metal.util.ParseStateFactory.stream;
 import static io.parsingdata.metal.util.TokenDefinitions.EMPTY_SVE;
 
+import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Optional;
 
 import org.junit.Test;
 
 import io.parsingdata.metal.data.ByteStream;
+import io.parsingdata.metal.data.ByteStreamSource;
+import io.parsingdata.metal.data.Environment;
 import io.parsingdata.metal.data.ParseState;
+import io.parsingdata.metal.data.ParseValue;
+import io.parsingdata.metal.data.Selection;
+import io.parsingdata.metal.encoding.Encoding;
 import io.parsingdata.metal.token.Token;
 import io.parsingdata.metal.util.InMemoryByteStream;
 
@@ -90,4 +100,30 @@ public class DefSizeTest {
             def("fortytwo", con(1), eq(con(42)))).parse(env(stream(21, 42))).isPresent());
     }
 
+    @Test
+    public void longSize() {
+        final Token def = def("data", Long.MAX_VALUE);
+        final ByteStream stream = new InfiniteZeroByteStream();
+        final ParseState state = ParseState.createFromByteStream(stream, BigInteger.ONE);
+        final Environment environment = new Environment(state, enc());
+
+        final ParseState result = def.parse(environment).get();
+        final ParseValue data = Selection.getAllValues(result.order, any -> true, 1).head;
+
+        assertThat(data.slice().offset, is(equalTo(BigInteger.ONE)));
+        assertThat(data.slice().length, is(equalTo(BigInteger.valueOf(Long.MAX_VALUE))));
+    }
+
+    private static final class InfiniteZeroByteStream implements ByteStream {
+
+        @Override
+        public byte[] read(final BigInteger offset, final int length) {
+            return new byte[length];
+        }
+
+        @Override
+        public boolean isAvailable(final BigInteger offset, final int length) {
+            return true;
+        }
+    }
 }
